@@ -109,10 +109,10 @@ const GCORecords = ({ userData, onLogout, onNavItemClick }) => {
       let endpoint;
       if (type === "INF") {
         // INF can only view psychological records
-        endpoint = "http://localhost:5000/api/infirmary/counseling-records";
+        endpoint = "https://ccmr-final-node-production.up.railway.app/api/infirmary/counseling-records";
       } else {
         // OPD and GCO can view all records
-        endpoint = "http://localhost:5000/api/counseling-records";
+        endpoint = "https://ccmr-final-node-production.up.railway.app/api/counseling-records";
       }
 
       const response = await fetch(endpoint);
@@ -150,10 +150,10 @@ const GCORecords = ({ userData, onLogout, onNavItemClick }) => {
       let endpoint;
       if (type === "INF") {
         // INF searches only in psychological records
-        endpoint = `http://localhost:5000/api/counseling-records/search?query=${encodeURIComponent(searchQuery)}`;
+        endpoint = `https://ccmr-final-node-production.up.railway.app/api/counseling-records/search?query=${encodeURIComponent(searchQuery)}`;
       } else {
         // OPD and GCO search in all records
-        endpoint = `http://localhost:5000/api/counseling-records/search?query=${encodeURIComponent(searchQuery)}`;
+        endpoint = `https://ccmr-final-node-production.up.railway.app/api/counseling-records/search?query=${encodeURIComponent(searchQuery)}`;
       }
 
       const response = await fetch(endpoint);

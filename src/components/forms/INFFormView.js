@@ -9,7 +9,7 @@ const INFFormView = ({ record, primaryColor }) => {
     const filename = file.filename;
     
     if (recordId && filename) {
-      const downloadUrl = `http://localhost:5000/api/medical-records/${recordId}/files/${filename}`;
+      const downloadUrl = `https://ccmr-final-node-production.up.railway.app/api/medical-records/${recordId}/files/${filename}`;
       window.open(downloadUrl, '_blank');
     } else {
       console.error('Missing recordId or filename for download');

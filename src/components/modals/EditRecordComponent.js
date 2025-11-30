@@ -235,7 +235,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       }
 
       const caseId = record.caseNo || record.cr_case_id;
-      const response = await fetch(`http://localhost:5000/api/case-records/${caseId}`, {
+      const response = await fetch(`https://ccmr-final-node-production.up.railway.app/api/case-records/${caseId}`, {
         method: 'PUT',
         body: formDataToSend
       });
@@ -330,7 +330,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       });
 
       const recordId = record.recordId || record.cor_record_id;
-      const response = await fetch(`http://localhost:5000/api/counseling-records/${recordId}`, {
+      const response = await fetch(`https://ccmr-final-node-production.up.railway.app/api/counseling-records/${recordId}`, {
         method: 'PUT',
         body: formDataToSend
       });
@@ -452,7 +452,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       }
 
       const recordId = record.mr_medical_id || record.recordId;
-      const response = await fetch(`http://localhost:5000/api/medical-records/${recordId}`, {
+      const response = await fetch(`https://ccmr-final-node-production.up.railway.app/api/medical-records/${recordId}`, {
         method: 'PUT',
         body: formDataToSend
       });

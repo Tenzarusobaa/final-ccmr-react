@@ -162,7 +162,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
         formDataToSend.append('attachments', file);
       });
 
-      const response = await fetch('http://localhost:5000/api/case-records', {
+      const response = await fetch('https://ccmr-final-node-production.up.railway.app/api/case-records', {
         method: 'POST',
         body: formDataToSend
       });
@@ -241,7 +241,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
         formDataToSend.append('attachments', file);
       });
 
-      const response = await fetch('http://localhost:5000/api/counseling-records', {
+      const response = await fetch('https://ccmr-final-node-production.up.railway.app/api/counseling-records', {
         method: 'POST',
         body: formDataToSend
       });
@@ -347,7 +347,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
         console.log('No file classifications to send');
       }
 
-      const response = await fetch('http://localhost:5000/api/medical-records', {
+      const response = await fetch('https://ccmr-final-node-production.up.railway.app/api/medical-records', {
         method: 'POST',
         body: formDataToSend
       });

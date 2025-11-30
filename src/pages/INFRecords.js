@@ -154,10 +154,10 @@ const INFRecords = ({ userData, onLogout, onNavItemClick }) => {
       let endpoint;
       if (type === "GCO") {
         // GCO sees only referred records
-        endpoint = "http://localhost:5000/api/medical-records/referred";
+        endpoint = "https://ccmr-final-node-production.up.railway.app/api/medical-records/referred";
       } else {
         // INF and OPD see all medical records - FIXED ENDPOINT
-        endpoint = "http://localhost:5000/api/infirmary/medical-records";
+        endpoint = "https://ccmr-final-node-production.up.railway.app/api/infirmary/medical-records";
       }
 
       const response = await fetch(endpoint);
@@ -195,10 +195,10 @@ const INFRecords = ({ userData, onLogout, onNavItemClick }) => {
       let endpoint;
       if (type === "GCO") {
         // GCO searches only in referred records
-        endpoint = `http://localhost:5000/api/medical-records/referred/search?query=${encodeURIComponent(searchQuery)}`;
+        endpoint = `https://ccmr-final-node-production.up.railway.app/api/medical-records/referred/search?query=${encodeURIComponent(searchQuery)}`;
       } else {
         // INF and OPD search in all records - FIXED ENDPOINT
-        endpoint = `http://localhost:5000/api/medical-records/search?query=${encodeURIComponent(searchQuery)}`;
+        endpoint = `https://ccmr-final-node-production.up.railway.app/api/medical-records/search?query=${encodeURIComponent(searchQuery)}`;
       }
 
       const response = await fetch(endpoint);

@@ -9,7 +9,7 @@ const OPDFormView = ({ record, primaryColor }) => {
     const filename = file.filename;
 
     if (caseId && filename) {
-      const downloadUrl = `http://localhost:5000/api/case-records/${caseId}/files/${filename}`;
+      const downloadUrl = `https://ccmr-final-node-production.up.railway.app/api/case-records/${caseId}/files/${filename}`;
       window.open(downloadUrl, '_blank');
     } else {
       console.error('Missing caseId or filename for download');

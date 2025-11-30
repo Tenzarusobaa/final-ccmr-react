@@ -102,8 +102,8 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick }) => {
       setError(null);
 
       const endpoint = type === "GCO"
-        ? "http://localhost:5000/api/case-records/referred"
-        : "http://localhost:5000/api/case-records";
+        ? "https://ccmr-final-node-production.up.railway.app/api/case-records/referred"
+        : "https://ccmr-final-node-production.up.railway.app/api/case-records";
 
       const response = await fetch(endpoint);
 
@@ -137,8 +137,8 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick }) => {
       setError(null);
 
       const endpoint = type === "GCO"
-        ? `http://localhost:5000/api/case-records/referred/search?query=${encodeURIComponent(searchQuery)}`
-        : `http://localhost:5000/api/case-records/search?query=${encodeURIComponent(searchQuery)}`;
+        ? `https://ccmr-final-node-production.up.railway.app/api/case-records/referred/search?query=${encodeURIComponent(searchQuery)}`
+        : `https://ccmr-final-node-production.up.railway.app/api/case-records/search?query=${encodeURIComponent(searchQuery)}`;
 
       const response = await fetch(endpoint);
 

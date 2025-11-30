@@ -19,7 +19,7 @@ const NotificationModal = ({ isOpen, onClose, userType }) => {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(`http://localhost:5000/api/notifications?receiver=${userType}`);
+      const response = await fetch(`https://ccmr-final-node-production.up.railway.app/api/notifications?receiver=${userType}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -42,7 +42,7 @@ const NotificationModal = ({ isOpen, onClose, userType }) => {
 
   const markAsRead = async (notificationId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/notifications/${notificationId}/read`, {
+      const response = await fetch(`https://ccmr-final-node-production.up.railway.app/api/notifications/${notificationId}/read`, {
         method: "PUT",
       });
 
@@ -61,7 +61,7 @@ const NotificationModal = ({ isOpen, onClose, userType }) => {
 
   const markAllAsRead = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/notifications/mark-all-read`, {
+      const response = await fetch(`https://ccmr-final-node-production.up.railway.app/api/notifications/mark-all-read`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
