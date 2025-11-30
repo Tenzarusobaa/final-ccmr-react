@@ -16,7 +16,7 @@ import './AnalyticsReport.css';
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
 // Get base URL from environment variables
-const baseUrl = process.env.REACT_APP_NODE_SERVER_URL || "http://localhost:5000/";
+const baseUrl = process.env.REACT_APP_NODE_SERVER_URL || "https://ccmr-final-node-production.up.railway.app/";
 const apiUrl = `${baseUrl}api`;
 
 const AnalyticsReport = ({ userType }) => {
