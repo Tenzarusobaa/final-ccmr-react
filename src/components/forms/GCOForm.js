@@ -96,6 +96,10 @@ const GCOForm = ({
     return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
   };
 
+  // Check if date and time should be required based on status
+  const isDateRequired = formData.status !== 'To Schedule';
+  const isTimeRequired = formData.status !== 'To Schedule';
+
   return (
     <div className="form-container">
       <div className="form-sections-row">
@@ -197,25 +201,25 @@ const GCOForm = ({
           </div>
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="date">Date *</label>
+              <label htmlFor="date">Date {isDateRequired ? '*' : ''}</label>
               <input 
                 type="date" 
                 id="date" 
                 name="date"
                 value={formData.date} 
                 onChange={handleInputChange}
-                required
+                required={isDateRequired}
               />
             </div>
             <div className="form-group">
-              <label htmlFor="time">Time *</label>
+              <label htmlFor="time">Time {isTimeRequired ? '*' : ''}</label>
               <input 
                 type="time" 
                 id="time" 
                 name="time"
                 value={formData.time} 
                 onChange={handleInputChange}
-                required
+                required={isTimeRequired}
               />
             </div>
           </div>
