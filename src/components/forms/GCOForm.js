@@ -52,26 +52,23 @@ const GCOForm = ({
     
     // If status is changing to "To Schedule", reset date and time
     if (name === 'status' && value === 'To Schedule') {
-      onInputChange(e); // First update the status
+      // First update the status
+      onInputChange(e);
       
-      // Create synthetic events to clear date and time
-      setTimeout(() => {
-        const dateEvent = {
-          target: {
-            name: 'date',
-            value: ''
-          }
-        };
-        const timeEvent = {
-          target: {
-            name: 'time',
-            value: ''
-          }
-        };
-        
-        onInputChange(dateEvent);
-        onInputChange(timeEvent);
-      }, 0);
+      // Clear date and time fields
+      onInputChange({
+        target: {
+          name: 'date',
+          value: ''
+        }
+      });
+      
+      onInputChange({
+        target: {
+          name: 'time',
+          value: ''
+        }
+      });
     } else {
       onInputChange(e);
     }
@@ -209,6 +206,7 @@ const GCOForm = ({
                 value={formData.date} 
                 onChange={handleInputChange}
                 required={isDateRequired}
+                disabled={formData.status === 'To Schedule'}
               />
             </div>
             <div className="form-group">
@@ -220,6 +218,7 @@ const GCOForm = ({
                 value={formData.time} 
                 onChange={handleInputChange}
                 required={isTimeRequired}
+                disabled={formData.status === 'To Schedule'}
               />
             </div>
           </div>
