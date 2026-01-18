@@ -126,7 +126,7 @@ const Dashboard = ({ userData, onLogout, onNavItemClick }) => {
 
   return (
     <div className="dashboard-container">
-      <DemoOverlay />
+      {/* <DemoOverlay /> */}
       {/* Header/Nav Bar */}
       <DashboardNavigation 
         userName={name} 

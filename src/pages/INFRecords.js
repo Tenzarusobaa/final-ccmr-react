@@ -408,7 +408,8 @@ const INFRecords = ({ userData, onLogout, onNavItemClick }) => {
               currentFilter={currentFilter}
             />
 
-            <SearchBar onSearch={handleSearch} />
+            <SearchBar/>
+            {/* <SearchBar onSearch={handleSearch} /> */}
           </div>
         </div>
       </div>

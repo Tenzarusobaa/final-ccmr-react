@@ -185,7 +185,7 @@ const Login = ({ onLogin }) => {
 
   return (
     <div className="login-container">
-      <DemoOverlay />
+      {/* <DemoOverlay /> */}
       <div className="left" style={{ backgroundImage: `url(${backgroundImage})` }}>
         <div className="overlay"></div>
         <div className="left-content">

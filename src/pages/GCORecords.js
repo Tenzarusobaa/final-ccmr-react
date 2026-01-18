@@ -344,7 +344,8 @@ const GCORecords = ({ userData, onLogout, onNavItemClick }) => {
             {type === "GCO" && (
               <AddButton onClick={handleAddRecord} type={type} />
             )}
-            <SearchBar onSearch={handleSearch} />
+            <SearchBar/>
+            {/* <SearchBar onSearch={handleSearch} /> */}
           </div>
         </div>
       </div>

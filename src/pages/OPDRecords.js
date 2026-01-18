@@ -332,7 +332,8 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick }) => {
             {type === "OPD" && (
               <AddButton onClick={handleAddRecord} type={type} />
             )}
-            <SearchBar onSearch={handleSearch} />
+            <SearchBar/>
+            {/* <SearchBar onSearch={handleSearch} /> */}
           </div>
         </div>
       </div>
