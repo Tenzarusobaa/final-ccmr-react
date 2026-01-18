@@ -317,7 +317,7 @@ const GCORecords = ({ userData, onLogout, onNavItemClick }) => {
 
   return (
     <div className={`office-records-container ${getOfficeClass()}`}>
-      <DemoOverlay />
+      {/* <DemoOverlay /> */}
       <NavBar
         userDepartment={department}
         userType={type}

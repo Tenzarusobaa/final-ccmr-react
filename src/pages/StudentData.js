@@ -248,7 +248,7 @@ const StudentData = ({ userData, onLogout, onNavItemClick }) => {
   if (loading && students.length === 0) {
     return (
       <div className={`office-records-container ${getOfficeClass()}`}>
-        <DemoOverlay />
+        {/* <DemoOverlay /> */}
         <NavBar userDepartment={department} userType={type} userName={name} onLogout={onLogout} onNavItemClick={onNavItemClick} />
         <div className="office-records-header">
           <Breadcrumbs />
@@ -264,7 +264,7 @@ const StudentData = ({ userData, onLogout, onNavItemClick }) => {
 
   return (
     <div className={`office-records-container ${getOfficeClass()}`}>
-      <DemoOverlay />
+      {/* <DemoOverlay /> */}
       <NavBar
         userDepartment={department}
         userType={type}
