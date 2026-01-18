@@ -39,11 +39,11 @@ const DataTable = ({ data, columns, type, onRowClick, onSort, sortConfig }) => {
               >
                 <span className="column-header-content">
                   {column.label}
-                  {/* {column.sortable && (
+                  {column.sortable && (
                     <span className="sort-indicator">
                       {getSortIndicator(column.key)}
                     </span>
-                  )} */}
+                  )}
                 </span>
               </th>
             ))}

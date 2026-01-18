@@ -302,8 +302,8 @@ const GCOForm = ({
           </div>
         )}
 
-        {/* File upload area */}
-        {(!isEditMode || existingFiles.length === 0) && (
+        {/* File upload area 
+        //{(!isEditMode || existingFiles.length === 0) && (
           <div 
             className="attachment-box" 
             style={{ borderColor: primaryColor }}
@@ -315,6 +315,7 @@ const GCOForm = ({
             </div>
           </div>
         )}
+        */}
         
         {/* Selected new files */}
         {selectedFiles.length > 0 && (

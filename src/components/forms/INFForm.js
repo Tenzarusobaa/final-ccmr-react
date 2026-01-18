@@ -373,7 +373,7 @@ const INFForm = ({
           </div>
         )}
 
-        {/* File upload area - ALWAYS ENABLED even for OPD users */}
+        {/* File upload area - ALWAYS ENABLED even for OPD users 
         {remainingSlots > 0 && (
           <div 
             className="attachment-box" 
@@ -387,6 +387,8 @@ const INFForm = ({
             </div>
           </div>
         )}
+
+        */}
         
         {/* Selected new files with classification checkboxes */}
         {selectedFiles.length > 0 && (

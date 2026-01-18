@@ -239,7 +239,7 @@ const OPDForm = ({
           </div>
         )}
 
-        {/* File upload area - only show if no file exists or in add mode */}
+        {/* File upload area - only show if no file exists or in add mode 
         {(selectedFiles.length === 0 && (!isEditMode || existingFiles.length === 0)) && (
           <div 
             className="attachment-box" 
@@ -252,6 +252,8 @@ const OPDForm = ({
             </div>
           </div>
         )}
+
+        */}
         
         {/* Selected new files */}
         {selectedFiles.length > 0 && (
