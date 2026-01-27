@@ -15,7 +15,7 @@ const useStudentAutocomplete = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/students/search?id=${query}`);
+      const response = await fetch(`https://ccmr-final-node-production.up.railway.app/api/students/search?id=${query}`);
       const data = await response.json();
       
       if (data.success) {
