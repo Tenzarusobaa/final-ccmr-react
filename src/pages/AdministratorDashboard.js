@@ -22,7 +22,7 @@ const AdministratorDashboard = ({ userData, onLogout }) => {
     fetchUsers();
   }, []);
 
-  const API_BASE = "http://localhost:5000/api";
+  const API_BASE = "https://ccmr-final-node-production.up.railway.app/api";
 
   const fetchUsers = async () => {
     try {

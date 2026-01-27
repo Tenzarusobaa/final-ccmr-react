@@ -150,8 +150,8 @@ const UserEditModal = ({ isOpen, onClose, user, mode = 'view', onEdit, onDelete 
 
     try {
       const url = mode === 'add' 
-        ? 'http://localhost:5000/api/users'
-        : `http://localhost:5000/api/users/${user.email}`;
+        ? 'https://ccmr-final-node-production.up.railway.app/api/users'
+        : `https://ccmr-final-node-production.up.railway.app/api/users/${user.email}`;
 
       const method = mode === 'add' ? 'POST' : 'PUT';
 

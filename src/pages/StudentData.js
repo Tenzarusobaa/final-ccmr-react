@@ -31,7 +31,7 @@ const StudentData = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   const [currentSemesterIndex, setCurrentSemesterIndex] = useState(0);
   const fileInputRef = useRef(null);
 
-  const API_BASE = "http://localhost:5000/api";
+  const API_BASE = "https://ccmr-final-node-production.up.railway.app/api";
   const PYTHON_BASE = "http://localhost:5001/api";
 
   const getOfficeClass = () => {

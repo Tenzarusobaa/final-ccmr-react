@@ -286,7 +286,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       }
 
       const caseId = record.caseNo || record.cr_case_id;
-      const response = await fetch(`http://localhost:5000/api/case-records/${caseId}`, {
+      const response = await fetch(`https://ccmr-final-node-production.up.railway.app/api/case-records/${caseId}`, {
         method: 'PUT',
         body: formDataToSend
       });
@@ -388,7 +388,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       console.log('Time value:', formData.time);
 
       // Use environment variable for API base URL
-      const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
+      const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'https://ccmr-final-node-production.up.railway.app/';
       const response = await fetch(`${API_BASE_URL}api/counseling-records/${recordId}`, {
         method: 'PUT',
         body: formDataToSend,
@@ -509,7 +509,7 @@ const handleUpdateINFRecord = async () => {
     const recordId = record.mr_medical_id || record.recordId;
     console.log('Updating INF record ID:', recordId);
 
-    const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
+    const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'https://ccmr-final-node-production.up.railway.app/';
     const response = await fetch(`${API_BASE_URL}api/medical-records/${recordId}`, {
       method: 'PUT',
       body: formDataToSend,
