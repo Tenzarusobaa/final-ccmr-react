@@ -2,7 +2,7 @@
 import React from 'react';
 import './ViewFormStyles.css';
 
-const OPDFormView = ({ record, primaryColor }) => {
+const OPDFormView = ({ record, primaryColor, hideFields = false }) => {
   const handleDownload = (file) => {
     // Construct the correct download URL for case records
     const caseId = record.caseNo || record.cr_case_id;
@@ -119,19 +119,21 @@ const OPDFormView = ({ record, primaryColor }) => {
 
         <div className="form-section">
           <h4 style={{ color: primaryColor }}>Case Details *</h4>
-          <div className="form-group">
-            <label htmlFor="violationLevel">Violation Level *</label>
-            <select
-              id="violationLevel"
-              value={record.violationLevel || ''}
-              disabled
-            >
-              <option value="">-</option>
-              <option value="Minor">Minor</option>
-              <option value="Major">Major</option>
-              <option value="Serious">Serious</option>
-            </select>
-          </div>
+          {!hideFields && ( // Only show violation level if not hidden
+            <div className="form-group">
+              <label htmlFor="violationLevel">Violation Level *</label>
+              <select
+                id="violationLevel"
+                value={record.violationLevel || ''}
+                disabled
+              >
+                <option value="">-</option>
+                <option value="Minor">Minor</option>
+                <option value="Major">Major</option>
+                <option value="Serious">Serious</option>
+              </select>
+            </div>
+          )}
           <div className="form-group">
             <label htmlFor="status">Status *</label>
             <select
@@ -159,27 +161,29 @@ const OPDFormView = ({ record, primaryColor }) => {
         </div>
       </div>
 
-      <div className="form-section-full">
-        <h4 style={{ color: primaryColor }}>Description *</h4>
-        <div className="form-group">
-          <label htmlFor="generalDescription">General Description *</label>
-          <textarea
-            id="generalDescription"
-            value={record.description || record.generalDescription || ''}
-            rows="4"
-            disabled
-          ></textarea>
+      {!hideFields && ( // Only show description section if not hidden
+        <div className="form-section-full">
+          <h4 style={{ color: primaryColor }}>Description *</h4>
+          <div className="form-group">
+            <label htmlFor="generalDescription">General Description *</label>
+            <textarea
+              id="generalDescription"
+              value={record.description || record.generalDescription || ''}
+              rows="4"
+              disabled
+            ></textarea>
+          </div>
+          <div className="form-group">
+            <label htmlFor="additionalRemarks">Additional Remarks</label>
+            <textarea
+              id="additionalRemarks"
+              value={record.remarks || record.additionalRemarks || ''}
+              rows="2"
+              disabled
+            ></textarea>
+          </div>
         </div>
-        <div className="form-group">
-          <label htmlFor="additionalRemarks">Additional Remarks</label>
-          <textarea
-            id="additionalRemarks"
-            value={record.remarks || record.additionalRemarks || ''}
-            rows="2"
-            disabled
-          ></textarea>
-        </div>
-      </div>
+      )}
 
       <div className="form-section-full">
         <h4 style={{ color: primaryColor }}>Attachments</h4>
