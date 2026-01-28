@@ -1,5 +1,6 @@
 // src/pages/OPDRecords.js
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import NavBar from '../components/navigation/NavBar';
 import Breadcrumbs from '../components/navigation/Breadcrumbs';
 import SearchBar from '../components/search/SearchBar';
@@ -15,6 +16,7 @@ import './OfficeRecords.css';
 const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'http://localhost:5000/';
 
 const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
+  const location = useLocation();
   const name = userData?.name || localStorage.getItem('userName') || 'User';
   const department = userData?.department || localStorage.getItem('userDepartment') || 'Unknown Department';
   const type = userData?.type || localStorage.getItem('type') || 'Unknown Type';
@@ -34,7 +36,16 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editRecordData, setEditRecordData] = useState(null);
+  const [currentFilter, setCurrentFilter] = useState(null);
   
+
+  // Handle filter from navigation
+  useEffect(() => {
+    if (location.state?.filter) {
+      setCurrentFilter(location.state.filter);
+      console.log('Received filter from navigation:', location.state.filter);
+    }
+  }, [location.state]);
 
   const getOfficeClass = () => {
     switch (viewType) {
@@ -46,8 +57,28 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   };
 
   const getTitle = () => {
-    if (viewType === "OPD") return "Case Records";
-    if (viewType === "GCO") return "Referred Case Records";
+    if (viewType === "OPD") {
+      if (currentFilter) {
+        switch(currentFilter) {
+          case 'MINOR': return "Minor Case Records";
+          case 'MAJOR': return "Major Case Records";
+          case 'SERIOUS': return "Serious Case Records";
+          default: return "Case Records";
+        }
+      }
+      return "Case Records";
+    }
+    if (viewType === "GCO") {
+      if (currentFilter) {
+        switch(currentFilter) {
+          case 'MINOR': return "Referred Minor Case Records";
+          case 'MAJOR': return "Referred Major Case Records";
+          case 'SERIOUS': return "Referred Serious Case Records";
+          default: return "Referred Case Records";
+        }
+      }
+      return "Referred Case Records";
+    }
     return "Case Records";
   };
 
@@ -198,7 +229,7 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   };
 
   // Fetch all case records (default view)
-  const fetchAllRecords = async () => {
+  const fetchAllRecords = async (filter = null) => {
     try {
       setLoading(true);
       setError(null);
@@ -208,7 +239,10 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         ? `${API_BASE_URL}api/case-records/referred`
         : `${API_BASE_URL}api/case-records`;
 
-      const response = await fetch(endpoint);
+      // Add filter parameter if provided
+      const url = filter ? `${endpoint}?filter=${filter}` : endpoint;
+
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -269,7 +303,7 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
 
     if (!query.trim()) {
       // If search is cleared, show default records view
-      fetchAllRecords();
+      fetchAllRecords(currentFilter);
       return;
     }
 
@@ -317,13 +351,20 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     if (isSearchMode && searchQuery) {
       handleSearch(searchQuery);
     } else {
-      fetchAllRecords();
+      fetchAllRecords(currentFilter);
     }
   };
 
+  // Clear filter
+  const clearFilter = () => {
+    setCurrentFilter(null);
+    // Clear the navigation state
+    window.history.replaceState({}, document.title);
+  };
+
   useEffect(() => {
-    fetchAllRecords();
-  }, [viewType]);
+    fetchAllRecords(currentFilter);
+  }, [viewType, currentFilter]);
 
   const handleAddRecord = () => {
     setShowAddModal(true);
@@ -508,7 +549,17 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         <hr />
         <div className="header-flex">
           <div className="header-left">
-            <h2><FaFolder /> {getTitle()} {isSearchMode && searchQuery && `- Search: "${searchQuery}"`}</h2>
+            <h2><FaFolder /> {getTitle()} 
+              {isSearchMode && searchQuery && ` - Search: "${searchQuery}"`}
+              {currentFilter && !isSearchMode && (
+                <span className="filter-indicator">
+                  (Filtered: {currentFilter})
+                  <button onClick={clearFilter} className="clear-filter-btn">
+                    Clear Filter
+                  </button>
+                </span>
+              )}
+            </h2>
           </div>
           <div className="header-right" style={{ display: 'flex', alignItems: 'center' }}>
             {viewType === "OPD" && type === "OPD" && (
