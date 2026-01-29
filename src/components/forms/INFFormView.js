@@ -7,7 +7,7 @@ const INFFormView = ({ record, primaryColor }) => {
     // Construct the correct download URL for medical records
     const recordId = record.recordId || record.mr_medical_id;
     const filename = file.filename;
-    
+
     if (recordId && filename) {
       const downloadUrl = `https://ccmr-final-node-production.up.railway.app/api/medical-records/${recordId}/files/${filename}`;
       window.open(downloadUrl, '_blank');
@@ -49,6 +49,37 @@ const INFFormView = ({ record, primaryColor }) => {
 
   // Get attachments from record - handle different property names
   const attachments = record.attachments || record.mr_attachments || [];
+
+  // Debug: Log the record to see all properties
+  console.log('INFFormView - Record data:', record);
+  console.log('INFFormView - Referred value:', record.referred);
+
+  // Helper function to get the referred value from any possible property name
+  const getReferredValue = () => {
+    // Check all possible property names for the referral status
+    const possibleNames = [
+      'referred',
+      'mr_referred',
+      'referredToGCO',
+      'mr_referred_to_gco'
+    ];
+    
+    for (const name of possibleNames) {
+      if (record[name] !== undefined) {
+        console.log(`Found referral at ${name}: ${record[name]}`);
+        return record[name];
+      }
+    }
+    
+    // If not found, check if it might be in a nested object
+    if (record.record && record.record.referred !== undefined) {
+      return record.record.referred;
+    }
+    
+    return '';
+  };
+
+  const referredValue = getReferredValue();
 
   return (
     <div className="form-container">
@@ -107,17 +138,17 @@ const INFFormView = ({ record, primaryColor }) => {
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="schoolYearSemester">School Year & Semester</label>
-              <input 
-                type="text" 
-                id="schoolYearSemester" 
+              <input
+                type="text"
+                id="schoolYearSemester"
                 name="schoolYearSemester"
-                value={record?.schoolYearSemester || record?.schoolYear || ''} 
+                value={record?.schoolYearSemester || record?.schoolYear || ''}
                 disabled={true}
               />
             </div>
           </div>
         </div>
-        
+
         <div className="form-section">
           <h4 style={{ color: primaryColor }}>Record Details *</h4>
           <div className="form-group">
@@ -146,9 +177,10 @@ const INFFormView = ({ record, primaryColor }) => {
             <label htmlFor="referredToGCO">Refer to GCO? *</label>
             <select
               id="referredToGCO"
-              value={record.referred || record.mr_referred || 'No'}
+              value={referredValue}
               disabled
             >
+              <option value="">- Select -</option>
               <option value="No">No</option>
               <option value="Yes">Yes</option>
             </select>
@@ -212,10 +244,10 @@ const INFFormView = ({ record, primaryColor }) => {
               const fileName = file.originalname || file.name || 'Unknown File';
               const fileType = file.type || file.mimetype || '';
               const fileSize = file.size;
-              
+
               return (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="file-item-view"
                   onClick={() => handleDownload(file)}
                   style={{ cursor: 'pointer', borderLeftColor: primaryColor }}
@@ -233,7 +265,7 @@ const INFFormView = ({ record, primaryColor }) => {
                     </div>
                   </div>
                   <div className="file-action-view">
-                    <button 
+                    <button
                       className="download-btn"
                       onClick={(e) => {
                         e.stopPropagation();

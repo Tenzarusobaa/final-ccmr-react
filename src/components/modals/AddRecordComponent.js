@@ -168,7 +168,7 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
         formDataToSend.append('attachments', file);
       });
 
-      const response = await fetch(`${API_BASE_URL}/api/case-records`, {
+      const response = await fetch(`${API_BASE_URL}api/case-records`, {
         method: 'POST',
         body: formDataToSend
       });
@@ -327,6 +327,20 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
       return;
     }
 
+    // NEW VALIDATION: Check if files have classifications
+    if (selectedFiles.length > 0) {
+      // Validate that all files have at least one classification
+      const filesWithoutClassification = selectedFiles.filter((file, index) => {
+        const classification = fileClassifications[index];
+        return !classification || (!classification.isMedical && !classification.isPsychological);
+      });
+
+      if (filesWithoutClassification.length > 0) {
+        alert('Please specify whether each file is Medical or Psychological before saving.');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -355,10 +369,22 @@ const AddRecordComponent = ({ isOpen, onClose, onRecordAdded, type }) => {
       // Append file classifications - FIXED: Use the actual fileClassifications state
       console.log('Sending file classifications:', fileClassifications);
       if (fileClassifications && fileClassifications.length > 0) {
-        fileClassifications.forEach(classification => {
+        // Validate each classification has at least one type selected
+        const validClassifications = fileClassifications.filter(classification =>
+          classification && (classification.isMedical || classification.isPsychological)
+        );
+
+        if (validClassifications.length !== fileClassifications.length) {
+          throw new Error('Some files are missing Medical/Psychological classification');
+        }
+
+        validClassifications.forEach(classification => {
           console.log('Appending classification:', classification);
           formDataToSend.append('fileClassifications', JSON.stringify(classification));
         });
+      } else if (selectedFiles.length > 0) {
+        // If there are files but no classifications, throw error
+        throw new Error('Files require Medical/Psychological classification');
       } else {
         console.log('No file classifications to send');
       }

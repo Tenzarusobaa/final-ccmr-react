@@ -58,7 +58,7 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   const getTitle = () => {
     if (viewType === "GCO") {
       if (currentFilter) {
-        switch(currentFilter) {
+        switch (currentFilter) {
           case 'TO_SCHEDULE': return "Counseling Records - To Schedule";
           case 'SCHEDULED': return "Counseling Records - Scheduled";
           case 'DONE': return "Counseling Records - Done";
@@ -69,7 +69,7 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     }
     if (viewType === "INF") {
       if (currentFilter) {
-        switch(currentFilter) {
+        switch (currentFilter) {
           case 'TO_SCHEDULE': return "Psychological Records - To Schedule";
           case 'SCHEDULED': return "Psychological Records - Scheduled";
           case 'DONE': return "Psychological Records - Done";
@@ -423,16 +423,12 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       }
     } else {
       // In default mode, we have individual record objects
-      setSelectedStudent({
-        id: recordOrStudent.id,
-        name: recordOrStudent.name,
-        strand: recordOrStudent.strand,
-        gradeLevel: recordOrStudent.gradeLevel,
-        section: recordOrStudent.section
-      });
-      setShowStudentModal(true);
+      // Open ViewRecordComponent directly with the record (like OPDRecords and INFRecords)
+      setSelectedRecord(recordOrStudent);
+      setShowViewModal(true);
     }
   };
+
 
   // Determine which data to display based on mode
   const displayData = useMemo(() => {
@@ -581,7 +577,7 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         <hr />
         <div className="header-flex">
           <div className="header-left">
-            <h2><FaFolder /> {getTitle()} 
+            <h2><FaFolder /> {getTitle()}
               {isSearchMode && searchQuery && ` - Search: "${searchQuery}"`}
               {currentFilter && !isSearchMode && (
                 <span className="filter-indicator">

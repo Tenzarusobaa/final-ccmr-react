@@ -43,8 +43,8 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   useEffect(() => {
     if (location.state?.filter) {
       const filter = location.state.filter;
-      setCurrentFilter(filter === 'MEDICAL' ? 'MEDICAL' : 
-                      filter === 'PSYCHOLOGICAL' ? 'PSYCHOLOGICAL' : 'ALL');
+      setCurrentFilter(filter === 'MEDICAL' ? 'MEDICAL' :
+        filter === 'PSYCHOLOGICAL' ? 'PSYCHOLOGICAL' : 'ALL');
       console.log('Received filter from navigation:', location.state.filter);
     }
   }, [location.state]);
@@ -180,11 +180,43 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     { key: 'date', label: 'Date', sortable: true }
   ];
 
+  // Helper function to get type value for sorting
+  const getTypeValue = (record) => {
+    const types = [];
+    if (record.isMedical === 'Yes') types.push('Medical');
+    if (record.isPsychological === 'Yes') types.push('Psychological');
+    return types.sort().join(', ') || 'None';
+  };
+
   // Sort records based on sortConfig
   const sortedRecords = useMemo(() => {
     if (!sortConfig.key) return records;
 
     return [...records].sort((a, b) => {
+      // Special handling for type column
+      if (sortConfig.key === 'type') {
+        const aValue = getTypeValue(a);
+        const bValue = getTypeValue(b);
+
+        // Handle null/undefined values
+        if (aValue == null && bValue == null) return 0;
+        if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
+
+        // Handle strings
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortConfig.direction === 'asc'
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        }
+
+        // Default comparison
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      }
+
+      // For all other columns, use the original logic
       const aValue = a[sortConfig.key];
       const bValue = b[sortConfig.key];
 
@@ -464,7 +496,7 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     refreshData();
   };
 
-  const handleRowClick = (recordOrStudent) => {
+  const handleRowClick = async (recordOrStudent) => {
     if (isSearchMode) {
       // In search mode, we have aggregated student objects
       if (recordOrStudent.medicalCount !== undefined) {
@@ -484,9 +516,27 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       }
     } else {
       // In default mode, we have individual record objects
-      // Open ViewRecordComponent directly with the record
-      setSelectedRecord(recordOrStudent);
-      setShowViewModal(true);
+      // Fetch the full record details from the API
+      try {
+        const recordId = recordOrStudent.recordId || recordOrStudent.mr_medical_id;
+        const response = await fetch(`${API_BASE_URL}api/medical-records/${recordId}`);
+        const data = await response.json();
+
+        if (data.success && data.record) {
+          setSelectedRecord(data.record);
+          setShowViewModal(true);
+        } else {
+          // Fallback to the record we have
+          console.warn('Failed to fetch full record details, using partial data');
+          setSelectedRecord(recordOrStudent);
+          setShowViewModal(true);
+        }
+      } catch (error) {
+        console.error('Error fetching record details:', error);
+        // Fallback to the record we have
+        setSelectedRecord(recordOrStudent);
+        setShowViewModal(true);
+      }
     }
   };
 
@@ -530,7 +580,7 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         <hr />
         <div className="header-flex">
           <div className="header-left">
-            <h2><FaFolder /> {getFilterTitle()} 
+            <h2><FaFolder /> {getFilterTitle()}
               {isSearchMode && searchQuery && ` - Search: "${searchQuery}"`}
               {location.state?.filter && !isSearchMode && (
                 <span className="filter-indicator">

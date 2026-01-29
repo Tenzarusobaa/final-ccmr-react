@@ -19,7 +19,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
     // OPD fields
     violationLevel: '',
     status: '', // Single status field for all record types
-    referToGCO: '',
+    referToGCO: '', // OPD uses this
     generalDescription: '',
     additionalRemarks: '',
     // GCO fields
@@ -33,7 +33,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
     medicalDetails: '',
     isPsychological: '',
     isMedical: '',
-    referredToGCO: 'No',
+    referredToGCO: '',
     // ADD uploaderType field:
     uploaderType: type // Set uploaderType to the current user type
   });
@@ -101,11 +101,20 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
     return statusMap[status] || status;
   };
 
-  // Populate form when record changes
+  // Populate form when record changes - FIXED: Properly map INF referred field
   useEffect(() => {
     if (record) {
       console.log('Editing record data:', record);
       console.log('Record schoolYearSemester:', record.schoolYearSemester || record.cr_school_year_semester);
+      console.log('Record referred field:', record.referred || record.mr_referred);
+
+      // Determine the referred value based on record type
+      let referredValue = '';
+      if (recordType === "OPD") {
+        referredValue = record.referred || record.mr_referred || '';
+      } else if (recordType === "INF") {
+        referredValue = record.referred || record.mr_referred || ''; // REMOVED DEFAULT 'No'
+      }
 
       setFormData(prev => ({
         ...prev,
@@ -121,7 +130,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
 
         // OPD fields
         violationLevel: record.violationLevel || record.cr_violation_level || '',
-        referToGCO: record.referred || record.mr_referred || record.referredToGCO || '',
+        referToGCO: recordType === "OPD" ? referredValue : '', // Only for OPD
         generalDescription: record.description || record.cr_description || '',
         additionalRemarks: record.remarks || record.mr_additional_remarks || record.cr_remarks || '',
 
@@ -132,24 +141,27 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
         generalConcern: record.concern || record.cor_general_concern || '',
         psychologicalCondition: record.psychologicalCondition || record.cor_is_psychological_condition || 'NO',
 
-        // INF fields
+        // INF fields - FIXED: Properly map referredToGCO
         subject: record.subject || record.mr_subject || '',
         medicalDetails: record.medicalDetails || record.mr_medical_details || '',
         isPsychological: record.isPsychological || record.mr_is_psychological || '',
         isMedical: record.isMedical || record.mr_is_medical || '',
-        referredToGCO: record.referred || record.mr_referred,
+        referredToGCO: recordType === "INF" ? (record.mr_referred || record.referred || '') : '',
+
+        
         // Set uploaderType to current user type
         uploaderType: type
       }));
 
       // Set existing files from record
       const files = record.attachments || record.files || [];
+      console.log('Setting existing files:', files);
       setExistingFiles(files);
       setSelectedFiles([]); // Reset new files
       setFilesToDelete([]); // Reset files to delete
       setFileClassifications([]); // Reset file classifications
     }
-  }, [record, type]);
+  }, [record, type, recordType]);
 
   if (!isOpen || !record) return null;
 
@@ -224,7 +236,12 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
 
   const handleFileClassifications = (classifications) => {
     console.log('File classifications received in edit:', classifications);
-    setFileClassifications(classifications);
+    // Ensure all classifications have required fields
+    const completeClassifications = classifications.map(classification => ({
+      ...classification,
+      filename: classification.filename || classification.originalname || ''
+    }));
+    setFileClassifications(completeClassifications);
   };
 
   const handleRemoveExistingFile = (filename) => {
@@ -467,12 +484,27 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       return;
     }
 
+    // Validate file classifications
+    const allFiles = [...existingFiles, ...selectedFiles];
+    if (allFiles.length > 0) {
+      const filesWithoutClassification = allFiles.filter(file => {
+        const fileName = file.originalname || file.name;
+        const classification = fileClassifications.find(c => c.filename === fileName);
+        return !classification || (!classification.isMedical && !classification.isPsychological);
+      });
+
+      if (filesWithoutClassification.length > 0) {
+        alert('Please specify whether file type is Medical/Psychological for all files');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
       const formDataToSend = new FormData();
 
-      // Append all form data
+      // Append all form data - FIXED: Use referredToGCO for INF
       formDataToSend.append('studentId', formData.studentId);
       formDataToSend.append('studentName', formData.studentName);
       formDataToSend.append('strand', formData.strand);
@@ -483,39 +515,64 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       formDataToSend.append('status', formData.status);
       formDataToSend.append('medicalDetails', formData.medicalDetails);
       formDataToSend.append('remarks', formData.additionalRemarks || '');
-      formDataToSend.append('referredToGCO', formData.referredToGCO);
+      formDataToSend.append('referredToGCO', formData.referredToGCO === undefined ? '' : formData.referredToGCO);
       formDataToSend.append('isPsychological', formData.isPsychological);
       formDataToSend.append('isMedical', formData.isMedical);
       // CRITICAL: Add uploaderType to the form data
       formDataToSend.append('uploaderType', formData.uploaderType || type);
 
-      // Append existing files that are not marked for deletion
-      const remainingExistingFiles = existingFiles.filter(file =>
-        !filesToDelete.includes(file.filename)
-      );
-      
+      // Prepare existing files with updated classifications
+      const remainingExistingFiles = existingFiles
+        .filter(file => !filesToDelete.includes(file.filename))
+        .map(file => {
+          const fileName = file.originalname || file.name;
+          const classification = fileClassifications.find(c => c.filename === fileName) || {};
+          return {
+            ...file,
+            isMedical: classification.isMedical || false,
+            isPsychological: classification.isPsychological || false
+          };
+        });
+
+      console.log('Remaining existing files with classifications:', remainingExistingFiles);
+
       if (remainingExistingFiles.length > 0) {
         formDataToSend.append('existingAttachments', JSON.stringify(remainingExistingFiles));
       }
 
       // Append files to delete
-      filesToDelete.forEach(filename => {
-        formDataToSend.append('filesToDelete', filename);
-      });
+      if (filesToDelete.length > 0) {
+        filesToDelete.forEach(filename => {
+          formDataToSend.append('filesToDelete', filename);
+        });
+      }
 
       // Append new files (multiple files allowed for INF)
       selectedFiles.forEach(file => {
         formDataToSend.append('attachments', file);
       });
 
-      // Append file classifications for new files
-      if (fileClassifications && fileClassifications.length > 0) {
-        formDataToSend.append('fileClassifications', JSON.stringify(fileClassifications));
+      // Append file classifications for ALL files (existing and new)
+      const allClassifications = [...remainingExistingFiles, ...selectedFiles].map(file => {
+        const fileName = file.originalname || file.name;
+        const classification = fileClassifications.find(c => c.filename === fileName) || {};
+        return {
+          filename: fileName,
+          isMedical: classification.isMedical || false,
+          isPsychological: classification.isPsychological || false
+        };
+      });
+
+      console.log('All file classifications to send:', allClassifications);
+
+      if (allClassifications.length > 0) {
+        formDataToSend.append('fileClassifications', JSON.stringify(allClassifications));
       }
 
       const recordId = record.mr_medical_id || record.recordId;
       console.log('Updating INF record ID:', recordId);
       console.log('Uploader type being sent:', formData.uploaderType || type);
+      console.log('referredToGCO being sent:', formData.referredToGCO); // Debug log
 
       const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'https://ccmr-final-node-production.up.railway.app/';
       const response = await fetch(`${API_BASE_URL}api/medical-records/${recordId}`, {
@@ -539,7 +596,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
           mr_status: formData.status,
           mr_medical_details: formData.medicalDetails,
           mr_additional_remarks: formData.additionalRemarks,
-          mr_referred: formData.referredToGCO,
+          mr_referred: formData.referredToGCO, // FIXED: Map to correct field
           mr_is_psychological: formData.isPsychological,
           mr_is_medical: formData.isMedical,
         };
@@ -600,10 +657,10 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       onRemoveNewFile: handleRemoveNewFile,
       onFileClassifications: handleFileClassifications,
       isEditMode: true,
-      // FIXED: OPD users should be able to edit INF records, so only disable for GCO records
       isDisabled: userType === "OPD" && recordType === "GCO",
       // PASS THE UPLOADER TYPE TO INFFORM
-      uploaderType: formData.uploaderType || userType
+      uploaderType: formData.uploaderType || userType,
+      userType: userType
     };
 
     switch (recordType) {

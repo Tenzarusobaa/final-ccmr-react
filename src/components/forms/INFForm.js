@@ -20,13 +20,22 @@ const INFForm = ({
   onFileClassifications,
   isEditMode = false,
   isDisabled = false,
-  // ADD THIS NEW PROP:
-  uploaderType = 'INF' // Pass the current user type
+  uploaderType = 'INF', // Pass the current user type
+  // ADD THIS NEW PROP for user type:
+  userType = 'INF' // Default to INF if not provided
 }) => {
   const fileInputRef = useRef(null);
   const [validationError, setValidationError] = useState('');
   const [fileClassifications, setFileClassifications] = useState({});
   const [maxFilesError, setMaxFilesError] = useState('');
+  // ADD THIS NEW STATE for file type validation
+  const [fileTypeValidationError, setFileTypeValidationError] = useState('');
+  const [hasInitializedClassifications, setHasInitializedClassifications] = useState(false);
+
+  // Use userType instead of checking colors
+  const isOPDUser = userType === "OPD";
+  const isGCOUser = userType === "GCO";
+  const isINFUser = userType === "INF";
 
   // Validate when isPsychological or isMedical changes
   useEffect(() => {
@@ -50,49 +59,116 @@ const INFForm = ({
     }
   }, [totalCurrentFiles]);
 
+  // Validate file classifications when they change
+  useEffect(() => {
+    validateFileClassifications();
+  }, [fileClassifications, selectedFiles, existingFiles]);
+
   // Pass file classifications to parent component when they change
   useEffect(() => {
     if (onFileClassifications) {
-      const classifications = Object.values(fileClassifications).filter(classification => 
-        classification && classification.filename
-      );
+      // Get all classifications (both existing and new files)
+      const allFiles = [
+        ...existingFiles,
+        ...selectedFiles.map(file => ({ 
+          name: file.name, 
+          originalname: file.name 
+        }))
+      ];
+      
+      const classifications = allFiles
+        .map(file => {
+          const fileName = file.originalname || file.name;
+          return fileClassifications[fileName];
+        })
+        .filter(classification => 
+          classification && classification.filename
+        );
+      
+      console.log('Sending classifications to parent:', classifications);
       onFileClassifications(classifications);
     }
-  }, [fileClassifications, onFileClassifications]);
+  }, [fileClassifications, onFileClassifications, existingFiles, selectedFiles]);
 
   // Initialize classifications for existing files in edit mode
   useEffect(() => {
-    if (isEditMode && existingFiles.length > 0) {
+    if (isEditMode && existingFiles.length > 0 && !hasInitializedClassifications) {
+      console.log('Initializing classifications for existing files:', existingFiles);
       const existingClassifications = {};
       existingFiles.forEach(file => {
-        existingClassifications[file.originalname || file.name] = {
-          filename: file.originalname || file.name,
-          isMedical: file.isMedical || false,
-          isPsychological: file.isPsychological || false
+        const fileName = file.originalname || file.name;
+        existingClassifications[fileName] = {
+          filename: fileName,
+          isMedical: file.isMedical === true || file.isMedical === 'true' || false,
+          isPsychological: file.isPsychological === true || file.isPsychological === 'true' || false
         };
       });
+      
+      console.log('Initial classifications:', existingClassifications);
       setFileClassifications(prev => ({ ...prev, ...existingClassifications }));
+      setHasInitializedClassifications(true);
     }
-  }, [isEditMode, existingFiles]);
+  }, [isEditMode, existingFiles, hasInitializedClassifications]);
+
+  // NEW FUNCTION: Validate file classifications
+  const validateFileClassifications = () => {
+    // Get all files (existing + selected)
+    const allFiles = [
+      ...existingFiles.map(file => ({
+        name: file.originalname || file.name,
+        type: file.mimetype || file.type
+      })),
+      ...selectedFiles
+    ];
+
+    if (allFiles.length === 0) {
+      setFileTypeValidationError('');
+      return;
+    }
+
+    // Check if any file has no classification selected
+    const filesWithoutClassification = allFiles.filter(file => {
+      const fileName = file.name || file.originalname;
+      const classification = fileClassifications[fileName];
+      return !classification || (!classification.isMedical && !classification.isPsychological);
+    });
+
+    if (filesWithoutClassification.length > 0) {
+      setFileTypeValidationError('Specify whether file type is Medical/Psychological for all files');
+    } else {
+      setFileTypeValidationError('');
+    }
+  };
 
   const handleAttachmentClick = () => {
-    // FIXED: Only prevent if truly disabled (GCO users editing INF records)
+    // Only prevent if truly disabled (GCO users editing INF records)
     if (isDisabled && remainingSlots <= 0) return;
     if (isDisabled && remainingSlots > 0) {
       // If disabled but has slots, check if it's GCO user
-      if (primaryColor === "#00451D" && isEditMode) {
+      if (isGCOUser && isEditMode) {
         // GCO user cannot edit INF records
         alert('GCO users cannot edit INF records');
         return;
       }
     }
+    // OPD users can always upload files
+    if (isOPDUser && isEditMode) {
+      // OPD users can upload files even though other inputs are disabled
+      fileInputRef.current?.click();
+      return;
+    }
+    // INF users can always upload files
+    if (isINFUser && isEditMode) {
+      fileInputRef.current?.click();
+      return;
+    }
     fileInputRef.current?.click();
   };
 
   const handleFileChange = (e) => {
-    // FIXED: Only prevent if truly disabled (GCO users editing INF records)
+    // Only prevent if truly disabled (GCO users editing INF records)
     if (isDisabled) {
-      if (primaryColor === "#00451D" && isEditMode) {
+      if (isGCOUser && isEditMode) {
         // GCO user cannot edit INF records
         alert('GCO users cannot edit INF records');
         return;
@@ -148,8 +224,8 @@ const INFForm = ({
   };
 
   const handleRemoveNewFile = (index) => {
-    // FIXED: Only prevent if truly disabled (GCO users editing INF records)
-    if (isDisabled && primaryColor === "#00451D" && isEditMode) {
+    // Only prevent if truly disabled (GCO users editing INF records)
+    if (isDisabled && isGCOUser && isEditMode) {
       // GCO user cannot edit INF records
       alert('GCO users cannot edit INF records');
       return;
@@ -170,18 +246,21 @@ const INFForm = ({
   };
 
   const handleFileClassificationChange = (fileName, field, value) => {
-    // FIXED: Only prevent if truly disabled (GCO users editing INF records)
-    if (isDisabled && primaryColor === "#00451D" && isEditMode) {
+    // Only prevent if truly disabled (GCO users editing INF records)
+    if (isDisabled && isGCOUser && isEditMode) {
       // GCO user cannot edit INF records
       alert('GCO users cannot edit INF records');
       return;
     }
     
+    console.log(`Changing classification for ${fileName}: ${field} = ${value}`);
+    
     setFileClassifications(prev => ({
       ...prev,
       [fileName]: {
         ...prev[fileName],
-        [field]: value
+        [field]: value,
+        filename: fileName // Ensure filename is always set
       }
     }));
   };
@@ -216,7 +295,7 @@ const INFForm = ({
                 isLoading={isLoading}
                 placeholder="Enter ID Number"
                 required={true}
-                disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
+                disabled={isDisabled || isOPDUser} // Disable for OPD users
               />
             </div>
             <div className="form-group">
@@ -293,7 +372,7 @@ const INFForm = ({
               onChange={onInputChange}
               placeholder="Enter subject or concern"
               required
-              disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
+              disabled={isDisabled || isOPDUser} // Disable for OPD users
             />
           </div>
           <div className="form-group">
@@ -304,7 +383,7 @@ const INFForm = ({
               value={formData.status} 
               onChange={onInputChange}
               required
-              disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
+              disabled={isDisabled || isOPDUser} // Disable for OPD users
             >
               <option value="">- Select Status -</option>
               <option value="Ongoing">Ongoing</option>
@@ -316,11 +395,11 @@ const INFForm = ({
             <label htmlFor="referredToGCO">Refer to GCO? *</label>
             <select 
               id="referredToGCO" 
-              name="referredToGCO" // FIXED: Ensure this matches the formData field name
+              name="referredToGCO"
               value={formData.referredToGCO} 
               onChange={onInputChange}
               required
-              disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
+              //disabled={isDisabled || isOPDUser} // Disable for OPD users
             >
               <option value="No">No</option>
               <option value="Yes">Yes</option>
@@ -335,7 +414,7 @@ const INFForm = ({
                 value={formData.isPsychological} 
                 onChange={onInputChange}
                 required
-                disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
+                disabled={isDisabled || isOPDUser} // Disable for OPD users
               >
                 <option value="">-</option>
                 <option value="Yes">Yes</option>
@@ -350,7 +429,7 @@ const INFForm = ({
                 value={formData.isMedical} 
                 onChange={onInputChange}
                 required
-                disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
+                disabled={isDisabled || isOPDUser} // Disable for OPD users
               >
                 <option value="">-</option>
                 <option value="Yes">Yes</option>
@@ -380,7 +459,7 @@ const INFForm = ({
             rows="4"
             placeholder="Enter detailed medical/psychological information..."
             required
-            disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
+            disabled={isDisabled || isOPDUser} // Disable for OPD users
           ></textarea>
         </div>
         <div className="form-group">
@@ -392,7 +471,7 @@ const INFForm = ({
             onChange={onInputChange}
             rows="2"
             placeholder="Enter any additional remarks..."
-            disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
+            disabled={isDisabled || isOPDUser} // Disable for OPD users
           ></textarea>
         </div>
       </div>
@@ -419,6 +498,13 @@ const INFForm = ({
             <small>{maxFilesError}</small>
           </div>
         )}
+
+        {/* NEW: File type validation error message */}
+        {fileTypeValidationError && (
+          <div className="validation-error" style={{ marginBottom: '15px' }}>
+            {fileTypeValidationError}
+          </div>
+        )}
         
         {/* Existing files in edit mode */}
         {isEditMode && existingFiles.length > 0 && (
@@ -426,7 +512,12 @@ const INFForm = ({
             <h5>Current Files:</h5>
             {existingFiles.map((file, index) => {
               const fileName = file.originalname || file.name;
-              const classification = fileClassifications[fileName] || { isMedical: false, isPsychological: false };
+              const classification = fileClassifications[fileName] || { 
+                isMedical: file.isMedical === true || file.isMedical === 'true' || false, 
+                isPsychological: file.isPsychological === true || file.isPsychological === 'true' || false 
+              };
+              
+              console.log(`File ${fileName} classification:`, classification);
               
               return (
                 <div key={index} className="file-item existing with-classification">
@@ -446,7 +537,8 @@ const INFForm = ({
                         type="checkbox"
                         checked={classification.isMedical || false}
                         onChange={(e) => handleFileClassificationChange(fileName, 'isMedical', e.target.checked)}
-                        disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
+                        disabled={isDisabled || isOPDUser} // Disable for OPD users
+                        required
                       />
                       <span>Medical</span>
                     </label>
@@ -456,7 +548,8 @@ const INFForm = ({
                         type="checkbox"
                         checked={classification.isPsychological || false}
                         onChange={(e) => handleFileClassificationChange(fileName, 'isPsychological', e.target.checked)}
-                        disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
+                        disabled={isDisabled || isOPDUser} // Disable for OPD users
+                        required
                       />
                       <span>Psychological</span>
                     </label>
@@ -467,7 +560,7 @@ const INFForm = ({
                     className="remove-file-btn"
                     onClick={() => onRemoveExistingFile(file.filename)}
                     title="Remove file"
-                    disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
+                    disabled={isDisabled || isOPDUser} // Disable for OPD users
                   >
                     ×
                   </button>
@@ -477,7 +570,8 @@ const INFForm = ({
           </div>
         )}
 
-        {remainingSlots > 0 && !(isDisabled && primaryColor === "#00451D") && (
+        {/* OPD users can still upload files even if other inputs are disabled */}
+        {remainingSlots > 0 && !(isDisabled && isGCOUser) && (
           <div 
             className="attachment-box" 
             style={{ borderColor: primaryColor }}
@@ -516,7 +610,7 @@ const INFForm = ({
                         type="checkbox"
                         checked={classification.isMedical || false}
                         onChange={(e) => handleFileClassificationChange(file.name, 'isMedical', e.target.checked)}
-                        disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
+          
                       />
                       <span>Medical</span>
                     </label>
@@ -526,7 +620,7 @@ const INFForm = ({
                         type="checkbox"
                         checked={classification.isPsychological || false}
                         onChange={(e) => handleFileClassificationChange(file.name, 'isPsychological', e.target.checked)}
-                        disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
+                    
                       />
                       <span>Psychological</span>
                     </label>
@@ -537,7 +631,7 @@ const INFForm = ({
                     className="remove-file-btn"
                     onClick={() => handleRemoveNewFile(index)}
                     title="Remove file"
-                    disabled={isDisabled && primaryColor === "#00451D"} // Only disable for GCO users
+                
                   >
                     ×
                   </button>
