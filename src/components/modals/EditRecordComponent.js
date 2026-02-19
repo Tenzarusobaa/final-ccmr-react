@@ -8,7 +8,14 @@ import INFForm from '../forms/INFForm';
 import { detectRecordType } from '../../utils/recordTypeDetector';
 import SuccessOverlay from '../common/SuccessOverlay';
 
-const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record }) => {
+const EditRecordComponent = ({ 
+  isOpen, 
+  onClose, 
+  onRecordUpdated, 
+  type, 
+  record,
+  isAdminViewOnly = false // New prop for admin view-only mode
+}) => {
   const [formData, setFormData] = useState({
     studentId: '',
     studentName: '',
@@ -175,15 +182,28 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
   };
 
   const getModalTitle = () => {
-    switch (recordType) {
-      case "OPD":
-        return "Edit Case Record";
-      case "GCO":
-        return "Edit Counseling Record";
-      case "INF":
-        return "Edit Medical/Psychological Record";
-      default:
-        return "Edit Record";
+    if (isAdminViewOnly) {
+      switch (recordType) {
+        case "OPD":
+          return "View Case Record (Admin Read-Only)";
+        case "GCO":
+          return "View Counseling Record (Admin Read-Only)";
+        case "INF":
+          return "View Medical/Psychological Record (Admin Read-Only)";
+        default:
+          return "View Record (Admin Read-Only)";
+      }
+    } else {
+      switch (recordType) {
+        case "OPD":
+          return "Edit Case Record";
+        case "GCO":
+          return "Edit Counseling Record";
+        case "INF":
+          return "Edit Medical/Psychological Record";
+        default:
+          return "Edit Record";
+      }
     }
   };
 
@@ -201,6 +221,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
   };
 
   const handleStudentIdChange = (value) => {
+    if (isAdminViewOnly) return; // Disable in admin view-only mode
     setFormData(prev => ({
       ...prev,
       studentId: value
@@ -209,6 +230,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
   };
 
   const handleStudentSelect = (student) => {
+    if (isAdminViewOnly) return; // Disable in admin view-only mode
     console.log('Selected student in edit mode:', student); // Debug log
     setFormData(prev => ({
       ...prev,
@@ -223,6 +245,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
   };
 
   const handleInputChange = (e) => {
+    if (isAdminViewOnly) return; // Disable in admin view-only mode
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -231,10 +254,12 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
   };
 
   const handleFilesSelected = (files) => {
+    if (isAdminViewOnly) return; // Disable in admin view-only mode
     setSelectedFiles(files);
   };
 
   const handleFileClassifications = (classifications) => {
+    if (isAdminViewOnly) return; // Disable in admin view-only mode
     console.log('File classifications received in edit:', classifications);
     // Ensure all classifications have required fields
     const completeClassifications = classifications.map(classification => ({
@@ -245,17 +270,22 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
   };
 
   const handleRemoveExistingFile = (filename) => {
+    if (isAdminViewOnly) return; // Disable in admin view-only mode
     setFilesToDelete(prev => [...prev, filename]);
     setExistingFiles(prev => prev.filter(file => file.filename !== filename));
   };
 
   const handleRemoveNewFile = (index) => {
+    if (isAdminViewOnly) return; // Disable in admin view-only mode
     const newFiles = [...selectedFiles];
     newFiles.splice(index, 1);
     setSelectedFiles(newFiles);
   };
 
   const handleUpdateOPDRecord = async () => {
+    // Admin view-only mode - should never reach here
+    if (isAdminViewOnly) return;
+    
     // Validate required fields for OPD
     if (!formData.studentId || !formData.studentName) {
       alert('Please select a student by entering a valid ID number');
@@ -307,7 +337,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       }
 
       const caseId = record.caseNo || record.cr_case_id;
-      const response = await fetch(`https://ccmr-final-node-production.up.railway.app/api/case-records/${caseId}`, {
+      const response = await fetch(`http://localhost:5000/api/case-records/${caseId}`, {
         method: 'PUT',
         body: formDataToSend
       });
@@ -346,6 +376,9 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
   };
 
   const handleUpdateGCORecord = async () => {
+    // Admin view-only mode - should never reach here
+    if (isAdminViewOnly) return;
+    
     // Validate required fields for GCO
     if (!formData.studentId || !formData.studentName) {
       alert('Please select a student by entering a valid ID number');
@@ -409,7 +442,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       console.log('Time value:', formData.time);
 
       // Use environment variable for API base URL
-      const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'https://ccmr-final-node-production.up.railway.app/';
+      const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'https//localhost:5000/';
       const response = await fetch(`${API_BASE_URL}api/counseling-records/${recordId}`, {
         method: 'PUT',
         body: formDataToSend,
@@ -457,6 +490,9 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
   };
 
   const handleUpdateINFRecord = async () => {
+    // Admin view-only mode - should never reach here
+    if (isAdminViewOnly) return;
+    
     // Validate required fields for INF
     if (!formData.studentId || !formData.studentName) {
       alert('Please select a student by entering a valid ID number');
@@ -574,7 +610,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       console.log('Uploader type being sent:', formData.uploaderType || type);
       console.log('referredToGCO being sent:', formData.referredToGCO); // Debug log
 
-      const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'https://ccmr-final-node-production.up.railway.app/';
+      const API_BASE_URL = process.env.REACT_APP_NODE_SERVER_URL || 'https//localhost:5000/';
       const response = await fetch(`${API_BASE_URL}api/medical-records/${recordId}`, {
         method: 'PUT',
         body: formDataToSend,
@@ -660,7 +696,8 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
       isDisabled: userType === "OPD" && recordType === "GCO",
       // PASS THE UPLOADER TYPE TO INFFORM
       uploaderType: formData.uploaderType || userType,
-      userType: userType
+      userType: userType,
+      isAdminViewOnly: isAdminViewOnly // Pass admin view-only flag to form
     };
 
     switch (recordType) {
@@ -677,6 +714,11 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
 
   // Check if user has permission to edit this record
   const hasEditPermission = () => {
+    // Admin can view but not edit (view-only mode handled separately)
+    if (isAdminViewOnly) {
+      return true; // Allow viewing
+    }
+    
     // OPD users can edit OPD records AND INF records
     if (userType === "OPD") {
       return recordType === "OPD" || recordType === "INF";
@@ -708,7 +750,7 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
             </button>
           </div>
           <div className="modal-body">
-            {!canEdit ? (
+            {!canEdit && !isAdminViewOnly ? (
               <div className="permission-denied">
                 <p>You don't have permission to edit {recordType} records.</p>
                 <p>Your user type ({userType}) cannot edit {recordType} records.</p>
@@ -719,9 +761,9 @@ const EditRecordComponent = ({ isOpen, onClose, onRecordUpdated, type, record })
           </div>
           <div className="modal-footer">
             <button className="btn secondary" onClick={onClose} disabled={isSubmitting}>
-              Cancel
+              {isAdminViewOnly ? 'Close' : 'Cancel'}
             </button>
-            {canEdit && (
+            {!isAdminViewOnly && canEdit && (
               <button
                 className="btn primary"
                 onClick={handleUpdateRecord}

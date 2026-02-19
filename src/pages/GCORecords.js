@@ -36,15 +36,49 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editRecordData, setEditRecordData] = useState(null);
-  const [currentFilter, setCurrentFilter] = useState(null);
+  
+  // FIXED: Added state to track if we need to force refresh
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Handle filter from navigation
+  // Get filter from localStorage on component mount, or from location.state
+  const [currentFilter, setCurrentFilter] = useState(() => {
+    // Try to get from localStorage first (persists across refreshes)
+    const savedFilter = localStorage.getItem(`${viewType}_filter`);
+    if (savedFilter) {
+      console.log('Loaded filter from localStorage:', savedFilter);
+      return savedFilter;
+    }
+    return null;
+  });
+
+  // FIXED: Improved filter handling to detect navigation changes
   useEffect(() => {
     if (location.state?.filter) {
-      setCurrentFilter(location.state.filter);
-      console.log('Received filter from navigation:', location.state.filter);
+      const newFilter = location.state.filter;
+      console.log('Received filter from navigation:', newFilter);
+      
+      // Only update if filter has changed
+      if (newFilter !== currentFilter) {
+        setCurrentFilter(newFilter);
+        // Save to localStorage so it persists on refresh
+        localStorage.setItem(`${viewType}_filter`, newFilter);
+        
+        // FIXED: Trigger a refresh when filter changes from navigation
+        setRefreshTrigger(prev => prev + 1);
+        
+        // Clear the navigation state to prevent re-triggering
+        window.history.replaceState({}, document.title);
+      }
     }
-  }, [location.state]);
+  }, [location.state, viewType, currentFilter]);
+
+  // Clear filter from localStorage when component unmounts or when clearing filter
+  useEffect(() => {
+    return () => {
+      // Optional: You can clear the filter when leaving the page
+      // localStorage.removeItem(`${viewType}_filter`);
+    };
+  }, [viewType]);
 
   const getOfficeClass = () => {
     switch (viewType) {
@@ -59,6 +93,7 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     if (viewType === "GCO") {
       if (currentFilter) {
         switch (currentFilter) {
+          case 'ALL': return "Counseling Records - All";
           case 'TO_SCHEDULE': return "Counseling Records - To Schedule";
           case 'SCHEDULED': return "Counseling Records - Scheduled";
           case 'DONE': return "Counseling Records - Done";
@@ -70,13 +105,16 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     if (viewType === "INF") {
       if (currentFilter) {
         switch (currentFilter) {
+          case 'ALL': return "Infirmary Records - All";
+          case 'MEDICAL': return "Infirmary Records - Medical";
+          case 'PSYCHOLOGICAL': return "Infirmary Records - Psychological";
           case 'TO_SCHEDULE': return "Psychological Records - To Schedule";
           case 'SCHEDULED': return "Psychological Records - Scheduled";
           case 'DONE': return "Psychological Records - Done";
-          default: return "Psychological Records";
+          default: return "Infirmary Records";
         }
       }
-      return "Psychological Records";
+      return "Infirmary Records";
     }
     return "Counseling Records";
   };
@@ -143,101 +181,104 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     { key: 'time', label: 'Time', sortable: true }
   ];
 
-  // Sort records based on sortConfig - FIXED: Only sort when we're in default mode
+  // Sort records based on sortConfig
   const sortedRecords = useMemo(() => {
-    if (!isSearchMode && sortConfig.key && records.length > 0) {
-      return [...records].sort((a, b) => {
-        const aValue = a[sortConfig.key];
-        const bValue = b[sortConfig.key];
+    if (!sortConfig.key) return records;
 
-        // Handle null/undefined values
-        if (aValue == null && bValue == null) return 0;
-        if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
+    return [...records].sort((a, b) => {
+      const aValue = a[sortConfig.key];
+      const bValue = b[sortConfig.key];
 
-        // Handle dates
-        if (sortConfig.key === 'date') {
-          const dateA = new Date(a.date || '1970-01-01');
-          const dateB = new Date(b.date || '1970-01-01');
-          return sortConfig.direction === 'asc'
-            ? dateA - dateB
-            : dateB - dateA;
-        }
+      // Handle null/undefined values
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
 
-        // Handle numeric fields
-        if (sortConfig.key === 'sessionNumber' || sortConfig.key === 'gradeLevel') {
-          const aNum = parseInt(aValue, 10);
-          const bNum = parseInt(bValue, 10);
-          if (isNaN(aNum) && isNaN(bNum)) return 0;
-          if (isNaN(aNum)) return sortConfig.direction === 'asc' ? -1 : 1;
-          if (isNaN(bNum)) return sortConfig.direction === 'asc' ? 1 : -1;
+      // Handle dates
+      if (sortConfig.key === 'date') {
+        const dateA = new Date(a.date || '1970-01-01');
+        const dateB = new Date(b.date || '1970-01-01');
+        return sortConfig.direction === 'asc'
+          ? dateA - dateB
+          : dateB - dateA;
+      }
 
-          return sortConfig.direction === 'asc'
-            ? aNum - bNum
-            : bNum - aNum;
-        }
+      // Handle numeric fields
+      if (sortConfig.key === 'sessionNumber' || sortConfig.key === 'gradeLevel') {
+        const aNum = parseInt(aValue, 10);
+        const bNum = parseInt(bValue, 10);
+        if (isNaN(aNum) && isNaN(bNum)) return 0;
+        if (isNaN(aNum)) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (isNaN(bNum)) return sortConfig.direction === 'asc' ? 1 : -1;
 
-        // Handle strings
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-          return sortConfig.direction === 'asc'
-            ? aValue.localeCompare(bValue)
-            : bValue.localeCompare(aValue);
-        }
+        return sortConfig.direction === 'asc'
+          ? aNum - bNum
+          : bNum - aNum;
+      }
 
-        // Default comparison
-        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-    return records;
-  }, [records, sortConfig, isSearchMode]);
+      // Handle strings
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortConfig.direction === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
 
-  // Sort students based on sortConfig - FIXED: Only sort when we're in search mode
+      // Default comparison
+      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [records, sortConfig]);
+
+  // Sort students based on sortConfig
   const sortedStudents = useMemo(() => {
-    if (isSearchMode && sortConfig.key && students.length > 0) {
-      return [...students].sort((a, b) => {
-        const aValue = a[sortConfig.key];
-        const bValue = b[sortConfig.key];
+    if (!sortConfig.key) return students;
 
-        if (aValue == null && bValue == null) return 0;
-        if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
+    return [...students].sort((a, b) => {
+      const aValue = a[sortConfig.key];
+      const bValue = b[sortConfig.key];
 
-        if (sortConfig.key === 'counselingCount' || sortConfig.key === 'gradeLevel') {
-          const aNum = parseInt(aValue, 10);
-          const bNum = parseInt(bValue, 10);
-          if (isNaN(aNum) && isNaN(bNum)) return 0;
-          if (isNaN(aNum)) return sortConfig.direction === 'asc' ? -1 : 1;
-          if (isNaN(bNum)) return sortConfig.direction === 'asc' ? 1 : -1;
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
 
-          return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
-        }
+      if (sortConfig.key === 'counselingCount' || sortConfig.key === 'gradeLevel') {
+        const aNum = parseInt(aValue, 10);
+        const bNum = parseInt(bValue, 10);
+        if (isNaN(aNum) && isNaN(bNum)) return 0;
+        if (isNaN(aNum)) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (isNaN(bNum)) return sortConfig.direction === 'asc' ? 1 : -1;
 
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-          return sortConfig.direction === 'asc'
-            ? aValue.localeCompare(bValue)
-            : bValue.localeCompare(aValue);
-        }
+        return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
+      }
 
-        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-    return students;
-  }, [students, sortConfig, isSearchMode]);
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortConfig.direction === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
 
-  // Handle sorting - FIXED: Reset data when switching modes
+      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [students, sortConfig]);
+
+  // Handle sorting
   const handleSort = (sortConfig) => {
     setSortConfig(sortConfig);
   };
 
-  // Clear filter
+  // Clear filter - FIXED: Properly clear from localStorage and refresh
   const clearFilter = () => {
+    console.log('Clearing filter');
     setCurrentFilter(null);
+    // Remove from localStorage
+    localStorage.removeItem(`${viewType}_filter`);
     // Clear the navigation state
     window.history.replaceState({}, document.title);
+    // Refresh data without filter
+    setRefreshTrigger(prev => prev + 1);
   };
 
   // Fetch all counseling records (default view) - UPDATED for INF view
@@ -258,7 +299,12 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       }
 
       // Add filter parameter if provided
-      const url = filter ? `${endpoint}?filter=${filter}` : endpoint;
+      let url = endpoint;
+      if (filter && filter !== 'ALL') {
+        url = `${endpoint}?filter=${filter}`;
+      }
+
+      console.log('Fetching records from:', url, 'with filter:', filter);
 
       const response = await fetch(url);
 
@@ -281,50 +327,12 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     }
   };
 
-  // Fetch students with counseling records (search mode) - UPDATED for INF view
-  const fetchStudents = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      setIsSearchMode(true);
-      setRecords([]); // Clear records when switching to search mode
-
-      let endpoint;
-      if (viewType === "INF") {
-        // INF should only see psychological counseling records
-        endpoint = `${API_BASE_URL}api/student-counseling-records/psychological`;
-      } else {
-        // GCO sees all counseling records
-        endpoint = `${API_BASE_URL}api/student-counseling-records`;
-      }
-
-      const response = await fetch(endpoint);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        setStudents(data.students || []);
-      } else {
-        throw new Error(data.error || 'Failed to fetch students');
-      }
-    } catch (err) {
-      console.error('Error fetching students:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Handle search - UPDATED for INF view
+  // Handle search - FIXED: Use proper search endpoints
   const handleSearch = async (query) => {
     setSearchQuery(query);
 
     if (!query.trim()) {
-      // If search is cleared, show default records view
+      // If search is cleared, show default records view with current filter
       fetchAllRecords(currentFilter);
       return;
     }
@@ -334,16 +342,15 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       setError(null);
       setIsSearchMode(true);
       setRecords([]); // Clear records for search mode
-      setStudents([]); // Clear students initially
 
       // Use different search endpoint based on viewType
       let endpoint;
       if (viewType === "INF") {
         // INF should only search psychological counseling records
-        endpoint = `${API_BASE_URL}api/student-counseling-records/psychological/search?query=${encodeURIComponent(query)}`;
+        endpoint = `${API_BASE_URL}api/counseling-records/search?query=${encodeURIComponent(query)}`;
       } else {
         // GCO searches all counseling records
-        endpoint = `${API_BASE_URL}api/student-counseling-records/search?query=${encodeURIComponent(query)}`;
+        endpoint = `${API_BASE_URL}api/counseling-records/search?query=${encodeURIComponent(query)}`;
       }
 
       console.log('Searching with viewType:', viewType, 'Endpoint:', endpoint);
@@ -357,21 +364,23 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       const data = await response.json();
 
       if (data.success) {
-        // This should return aggregated student data like OPDRecords
-        setStudents(data.students || []);
+        // This returns individual counseling records, not aggregated student data
+        setRecords(data.records || []);
+        setStudents([]);
       } else {
         throw new Error(data.error || 'Search failed');
       }
     } catch (err) {
-      console.error('Error searching students:', err);
+      console.error('Error searching records:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Refresh data
+  // Refresh data - FIXED: Properly handle currentFilter
   const refreshData = () => {
+    console.log('Refreshing data with filter:', currentFilter);
     if (isSearchMode && searchQuery) {
       handleSearch(searchQuery);
     } else {
@@ -379,9 +388,21 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     }
   };
 
+  // FIXED: Main effect to fetch data with refreshTrigger dependency
   useEffect(() => {
+    console.log('useEffect triggered with filter:', currentFilter, 'refreshTrigger:', refreshTrigger);
     fetchAllRecords(currentFilter);
-  }, [viewType, currentFilter]);
+  }, [viewType, currentFilter, refreshTrigger]); // Added refreshTrigger dependency
+
+  // Also refresh data when a record is updated (for the filter issue you mentioned)
+  useEffect(() => {
+    // This effect runs when showEditModal changes (when you close edit modal)
+    if (!showEditModal && !isSearchMode) {
+      // Refresh data after editing a record to ensure filter is applied
+      console.log('Refreshing data after edit modal closed');
+      setRefreshTrigger(prev => prev + 1);
+    }
+  }, [showEditModal, isSearchMode, currentFilter]);
 
   const handleAddRecord = () => {
     setShowAddModal(true);
@@ -389,57 +410,24 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
 
   const handleCloseModal = () => {
     setShowAddModal(false);
-    refreshData();
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const handleCloseStudentModal = () => {
     setShowStudentModal(false);
     setSelectedStudent(null);
-    refreshData();
+    setRefreshTrigger(prev => prev + 1);
   };
 
   const handleRecordAdded = () => {
     setShowAddModal(false);
-    refreshData();
+    setRefreshTrigger(prev => prev + 1);
   };
 
-  const handleRowClick = (recordOrStudent) => {
-    if (isSearchMode) {
-      // In search mode with aggregated students view
-      if (recordOrStudent.counselingCount !== undefined) {
-        // This is a student object from aggregated view
-        setSelectedStudent(recordOrStudent);
-        setShowStudentModal(true);
-      } else {
-        // This is a record object from search results
-        setSelectedStudent({
-          id: recordOrStudent.id,
-          name: recordOrStudent.name,
-          strand: recordOrStudent.strand,
-          gradeLevel: recordOrStudent.gradeLevel,
-          section: recordOrStudent.section
-        });
-        setShowStudentModal(true);
-      }
-    } else {
-      // In default mode, we have individual record objects
-      // Open ViewRecordComponent directly with the record (like OPDRecords and INFRecords)
-      setSelectedRecord(recordOrStudent);
-      setShowViewModal(true);
-    }
+  const handleRowClick = (record) => {
+    setSelectedRecord(record);
+    setShowViewModal(true);
   };
-
-
-  // Determine which data to display based on mode
-  const displayData = useMemo(() => {
-    if (isSearchMode) {
-      // In search mode, we show aggregated students
-      return { data: sortedStudents, columns: studentColumns, type: 'students' };
-    } else {
-      // In default mode, always show records
-      return { data: sortedRecords, columns: recordColumns, type: 'records' };
-    }
-  }, [isSearchMode, sortedStudents, sortedRecords]);
 
   // Render loading state
   if (loading) {
@@ -531,7 +519,7 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         <div className="content">
           <div className="error-state">
             Error loading records: {error}
-            <button onClick={refreshData} className="retry-button">
+            <button onClick={() => setRefreshTrigger(prev => prev + 1)} className="retry-button">
               Try Again
             </button>
           </div>
@@ -576,16 +564,17 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         </div>
         <hr />
         <div className="header-flex">
-          <div className="header-left">
-            <h2><FaFolder /> {getTitle()}
+          <div className="header-left" style={{ display: 'flex' }}>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <FaFolder /> {getTitle()}
               {isSearchMode && searchQuery && ` - Search: "${searchQuery}"`}
               {currentFilter && !isSearchMode && (
-                <span className="filter-indicator">
-                  (Filtered: {currentFilter})
-                  <button onClick={clearFilter} className="clear-filter-btn">
-                    Clear Filter
-                  </button>
-                </span>
+                <AddButton
+                  onClick={clearFilter}
+                  label="Clear Filter"
+                  title="Clear Filter"
+                  type={viewType}
+                />
               )}
             </h2>
           </div>
@@ -599,16 +588,18 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       </div>
 
       <div className="content">
-        {displayData.data.length === 0 ? (
+        {sortedRecords.length === 0 ? (
           <div className="empty-state">
             {isSearchMode && searchQuery
-              ? "No students found matching your search."
+              ? "No records found matching your search."
+              : currentFilter
+              ? `No ${getTitle().toLowerCase()} found.`
               : "No records found. Create a new record to get started."}
           </div>
         ) : (
           <DataTable
-            data={displayData.data}
-            columns={displayData.columns}
+            data={sortedRecords}
+            columns={recordColumns}
             type={viewType}
             onRowClick={handleRowClick}
             onSort={handleSort}
@@ -645,23 +636,13 @@ const GCORecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         onClose={() => {
           setShowEditModal(false);
           setEditRecordData(null);
-          refreshData();
         }}
         onRecordUpdated={() => {
           setShowEditModal(false);
           setEditRecordData(null);
-          refreshData();
         }}
         type={viewType}
         record={editRecordData}
-      />
-
-      <ViewStudentRecordsComponent
-        isOpen={showStudentModal}
-        onClose={handleCloseStudentModal}
-        student={selectedStudent}
-        type={viewType}
-        recordType="counseling"
       />
 
       <div className="footer">

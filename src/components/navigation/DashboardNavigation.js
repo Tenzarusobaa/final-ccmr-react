@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBell, faCalendar, faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons";
+import { faBell, faCalendar, faCaretDown, faCaretRight, faFileMedical } from "@fortawesome/free-solid-svg-icons";
 import NotificationsModal from "../modals/NotificationModal";
 import "./DashboardNavigation.css";
 
@@ -52,6 +52,7 @@ const DashboardNavigation = ({ userDepartment, userType, userName, onLogout, onE
                     "OPD Records": "/opd-records",
                     "GCO Records": "/gco-records",
                     "INF Records": "/inf-records",
+                    "Medical Certificates": "/medical-certificates",
                     "Student Data": "/student-data"
                 };
             case "GCO":
@@ -60,6 +61,7 @@ const DashboardNavigation = ({ userDepartment, userType, userName, onLogout, onE
                     "GCO Records": "/gco-records",
                     "OPD Records": "/opd-records",
                     "INF Records": "/inf-records",
+                    "Medical Certificates": "/medical-certificates",
                     "Student Data": "/student-data"
                 };
             case "INF":
@@ -67,6 +69,7 @@ const DashboardNavigation = ({ userDepartment, userType, userName, onLogout, onE
                     "Dashboard": "/dashboard",
                     "INF Records": "/inf-records",
                     "GCO Records": "/gco-records",
+                    "Medical Certificates": "/medical-certificates",
                     "Student Data": "/student-data"
                 };
             case "Administrator":
@@ -112,6 +115,7 @@ const DashboardNavigation = ({ userDepartment, userType, userName, onLogout, onE
                 "OPD Records": officeType === "GCO" ? "/admin-opd-records-gco" : "/admin-opd-records",
                 "GCO Records": getAdminGCORecordsRoute(officeType),
                 "INF Records": getAdminINFRecordsRoute(officeType),
+                "Medical Certificates": getAdminMedicalCertificatesRoute(officeType),
                 "Student Data": "/admin-student-data"
             };
 
@@ -142,6 +146,12 @@ const DashboardNavigation = ({ userDepartment, userType, userName, onLogout, onE
                     case "INF": return "/admin-gco-records-inf";
                     default: return "/admin-gco-records";
                 }
+            }
+
+            // Helper function for admin medical certificates route
+            function getAdminMedicalCertificatesRoute(officeType) {
+                // Medical certificates can be the same for all offices since it's a consolidated view
+                return "/admin-medical-certificates";
             }
 
             if (routeMap[item]) {
@@ -232,6 +242,7 @@ const DashboardNavigation = ({ userDepartment, userType, userName, onLogout, onE
                                                 onClick={() => handleNavClick(item)}
                                                 style={{ cursor: 'pointer' }}
                                             >
+                                             
                                                 {item}
                                             </div>
                                         ))}
@@ -297,7 +308,10 @@ const DashboardNavigation = ({ userDepartment, userType, userName, onLogout, onE
                                                                     cursor: 'pointer',
                                                                     color: '#333',
                                                                     transition: 'all 0.2s ease',
-                                                                    fontSize: '14px'
+                                                                    fontSize: '14px',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '8px'
                                                                 }}
                                                                 onMouseEnter={(e) => {
                                                                     e.target.style.backgroundColor = '#f0f0f0';
@@ -306,6 +320,7 @@ const DashboardNavigation = ({ userDepartment, userType, userName, onLogout, onE
                                                                     e.target.style.backgroundColor = 'transparent';
                                                                 }}
                                                             >
+                                                             
                                                                 {item}
                                                             </div>
                                                         ))}
@@ -325,6 +340,7 @@ const DashboardNavigation = ({ userDepartment, userType, userName, onLogout, onE
                                     onClick={() => handleNavClick(item)}
                                     style={{ cursor: 'pointer' }}
                                 >
+                               
                                     {item}
                                 </div>
                             ))

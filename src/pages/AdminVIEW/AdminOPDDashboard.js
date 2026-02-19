@@ -109,7 +109,7 @@ const AdminOPDDashboard = ({ userData, onLogout, onNavItemClick, onExitViewAs })
           {/* Left Section - 80% */}
           <div className="dashboard-left">
             {/* Tally Analytics Section for OPD */}
-            <TallyAnalytics userType={viewType} />
+            <TallyAnalytics userType={viewType} isAdmin={true} />
 
             {/* Dashboard Tables Section */}
             <div className="dashboard-tables">
@@ -126,7 +126,8 @@ const AdminOPDDashboard = ({ userData, onLogout, onNavItemClick, onExitViewAs })
                     onClick={handleOpenGuide}
                     label="User Guide"
                     title="Open User Guide"
-                    type={viewType}
+                 
+                    style={{ backgroundColor: '#0a1a3c' }}
                   />
                 </div>
               </div>

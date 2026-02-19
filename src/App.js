@@ -8,6 +8,7 @@ import GCORecords from './pages/GCORecords';
 import INFRecords from './pages/INFRecords';
 import StudentData from './pages/StudentData';
 import AdministratorDashboard from './pages/AdministratorDashboard';
+import MedicalCertificates from './pages/MedicalCertificates';
 
 
 // Import Admin View Dashboard pages
@@ -152,6 +153,14 @@ function AppContent() {
           } />
           <Route path="/student-data" element={
             <StudentData
+              userData={userData}
+              onLogout={handleLogout}
+              onExitViewAs={handleExitViewAs}
+            />
+          } />
+
+          <Route path="/medical-certificates" element={
+            <MedicalCertificates
               userData={userData}
               onLogout={handleLogout}
               onExitViewAs={handleExitViewAs}

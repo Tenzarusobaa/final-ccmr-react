@@ -1,95 +1,20 @@
-/* DashboardTables.css - Updated with user type color schemes */
-.dashboard-table-container {
-  width: 100%;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
+/* Admin styling for dashboard tables */
+.dashboard-table-container.admin h3 {
+    color: #0a1a3c;
+    border-bottom: 2px solid #0a1a3c;
 }
 
-.dashboard-table-container h3 {
-  margin: 0;
-  padding: 16px 20px;
-  font-size: 16px;
-  font-weight: 600;
+
+.dashboard-table-container.admin .dashboard-table tr:hover {
+    background-color: rgba(10, 26, 60, 0.05);
 }
 
-/* User type specific colors for headings */
-.dashboard-table-container.opd h3 {
-  color: #003A6C;
-  border-bottom: 2px solid #003A6C;
+.dashboard-table-container.admin .clickable-row:hover {
+    background-color: rgba(10, 26, 60, 0.1) !important;
+    cursor: pointer;
 }
 
-.dashboard-table-container.gco h3 {
-  color: #00451D;
-  border-bottom: 2px solid #00451D;
-}
-
-.dashboard-table-container.inf h3 {
-  color: #640C17;
-  border-bottom: 2px solid #640C17;
-}
-
-.dashboard-table-container.default h3 {
-  color: #0a1a3c;
-  border-bottom: 2px solid #0a1a3c;
-}
-
-.table-wrapper {
-  overflow-x: auto;
-}
-
-.dashboard-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-.dashboard-table th {
-  padding: 12px 16px;
-  text-align: left;
-  font-weight: 600;
-  color: #495057;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.dashboard-table td {
-  padding: 12px 16px;
-  color: #6c757d;
-}
-
-.dashboard-table tr:last-child td {
-  border-bottom: none;
-}
-
-.dashboard-table tr:hover {
-  background: #f8f9fa;
-}
-
-.table-loading,
-.table-error,
-.no-data {
-  text-align: center;
-  padding: 40px 20px;
-  color: #6c757d;
-  font-style: italic;
-}
-
-.table-error {
-  color: #dc3545;
-}
-
-.status-badge {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-  text-transform: uppercase;
-}
-
-.status-scheduled {
-  color: #00451D;
-}
-
-.status-to-schedule {
-  color: #E30800;
+/* Keep existing styles but ensure admin overrides take precedence */
+.dashboard-table-container.admin {
+    /* Any container-level admin styles */
 }

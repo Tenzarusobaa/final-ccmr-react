@@ -37,7 +37,7 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editRecordData, setEditRecordData] = useState(null);
   const [currentFilter, setCurrentFilter] = useState(null);
-  
+
 
   // Handle filter from navigation
   useEffect(() => {
@@ -59,7 +59,7 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   const getTitle = () => {
     if (viewType === "OPD") {
       if (currentFilter) {
-        switch(currentFilter) {
+        switch (currentFilter) {
           case 'MINOR': return "Minor Case Records";
           case 'MAJOR': return "Major Case Records";
           case 'SERIOUS': return "Serious Case Records";
@@ -70,7 +70,7 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     }
     if (viewType === "GCO") {
       if (currentFilter) {
-        switch(currentFilter) {
+        switch (currentFilter) {
           case 'MINOR': return "Referred Minor Case Records";
           case 'MAJOR': return "Referred Major Case Records";
           case 'SERIOUS': return "Referred Serious Case Records";
@@ -549,18 +549,21 @@ const OPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         <hr />
         <div className="header-flex">
           <div className="header-left">
-            <h2><FaFolder /> {getTitle()} 
-              {isSearchMode && searchQuery && ` - Search: "${searchQuery}"`}
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span>
+                <FaFolder /> {getTitle()}
+                {isSearchMode && searchQuery && ` - Search: "${searchQuery}"`}
+              </span>
               {currentFilter && !isSearchMode && (
-                <span className="filter-indicator">
-                  (Filtered: {currentFilter})
-                  <button onClick={clearFilter} className="clear-filter-btn">
-                    Clear Filter
-                  </button>
-                </span>
+                <AddButton
+                  onClick={clearFilter}
+                  label="Clear Filter"
+                  title="Clear Filter"
+                  type={viewType}
+                />
               )}
             </h2>
-          </div>
+          </div>  
           <div className="header-right" style={{ display: 'flex', alignItems: 'center' }}>
             {viewType === "OPD" && type === "OPD" && (
               <AddButton onClick={handleAddRecord} type={viewType} />

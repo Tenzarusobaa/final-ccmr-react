@@ -301,6 +301,7 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
     const nextIndex = (currentIndex + 1) % filters.length;
     const newFilter = filters[nextIndex];
 
+    console.log(`Cycling filter from ${currentFilter} to ${newFilter}`);
     setCurrentFilter(newFilter);
     // Clear navigation state when manually cycling filter
     window.history.replaceState({}, document.title);
@@ -319,9 +320,19 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
 
   // Clear filter
   const clearFilter = () => {
+    console.log('Clearing filter, setting to ALL');
     setCurrentFilter('ALL');
     // Clear the navigation state
     window.history.replaceState({}, document.title);
+    
+    // Refresh data with ALL filter
+    if (isSearchMode && searchQuery) {
+      handleSearch(searchQuery);
+    } else if (isSearchMode) {
+      fetchStudents();
+    } else {
+      fetchAllRecords();
+    }
   };
 
   const handleSort = (sortConfig) => {
@@ -355,6 +366,7 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       const data = await response.json();
 
       if (data.success) {
+        console.log(`Fetched ${data.records?.length || 0} records with filter: ${currentFilter}`);
         setRecords(data.records || []);
         setStudents([]);
       } else {
@@ -395,6 +407,7 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       const data = await response.json();
 
       if (data.success) {
+        console.log(`Fetched ${data.students?.length || 0} students with filter: ${currentFilter}`);
         setStudents(data.students || []);
         setRecords([]);
       } else {
@@ -445,6 +458,7 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
 
       if (data.success) {
         // This should return aggregated student data
+        console.log(`Search returned ${data.students?.length || 0} students with filter: ${currentFilter}`);
         setStudents(data.students || []);
         setRecords([]); // Clear individual records
       } else {
@@ -543,6 +557,9 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   // Only show filter button for INF users, not for GCO users
   const showFilterButton = viewType === "INF" && (!isSearchMode || !searchQuery);
 
+  // Check if we should show clear filter button
+  const shouldShowClearFilter = currentFilter !== 'ALL';
+
   return (
     <div className={`office-records-container ${getOfficeClass()}`}>
       <NavBar
@@ -580,15 +597,18 @@ const INFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         <hr />
         <div className="header-flex">
           <div className="header-left">
-            <h2><FaFolder /> {getFilterTitle()}
-              {isSearchMode && searchQuery && ` - Search: "${searchQuery}"`}
-              {location.state?.filter && !isSearchMode && (
-                <span className="filter-indicator">
-                  (Filtered from Analytics)
-                  <button onClick={clearFilter} className="clear-filter-btn">
-                    Clear Filter
-                  </button>
-                </span>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <FaFolder /> {getFilterTitle()}
+                {isSearchMode && searchQuery && ` - Search: "${searchQuery}"`}
+              </span>
+              {shouldShowClearFilter && !isSearchMode && (
+                <AddButton
+                  onClick={clearFilter}
+                  label="Clear Filter"
+                  title="Clear Filter"
+                  type={viewType}
+                />
               )}
             </h2>
           </div>

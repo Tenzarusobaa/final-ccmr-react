@@ -1,8 +1,8 @@
-// OPDPsychologicalRecordsGCO.js - Updated with clickable rows
+// OPDPsychologicalRecordsGCO.js - Updated with admin styling support
 import React, { useState, useEffect } from 'react';
 import './DashboardTables.css';
 
-const OPDPsychologicalRecordsGCO = ({ userType = 'default', onRowClick }) => {
+const OPDPsychologicalRecordsGCO = ({ userType = 'default', onRowClick, isAdmin = false }) => {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -41,12 +41,23 @@ const OPDPsychologicalRecordsGCO = ({ userType = 'default', onRowClick }) => {
     }
   };
 
+  // Get the appropriate class based on admin mode
+  const getContainerClass = () => {
+    if (isAdmin) return 'dashboard-table-container admin';
+    return `dashboard-table-container ${userType.toLowerCase()}`;
+  };
+
+  // Get header class for admin mode
+  const getHeaderClass = () => {
+    return isAdmin ? 'admin-header' : '';
+  };
+
   if (loading) return <div className="table-loading">Loading psychological records...</div>;
   if (error) return <div className="table-error">Error: {error}</div>;
 
   return (
-    <div className={`dashboard-table-container ${userType.toLowerCase()}`}>
-      <h3>Psychological Records (GCO) - Recent 10</h3>
+    <div className={getContainerClass()}>
+      <h3 className={getHeaderClass()}>Psychological Records (GCO) - Recent 10</h3>
       <div className="table-wrapper">
         <table className="dashboard-table">
           <thead>

@@ -31,6 +31,10 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentFilter, setCurrentFilter] = useState('ALL');
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editRecordData, setEditRecordData] = useState(null);
 
   // Use default styling for admin view
   const getOfficeClass = () => "office-records-default";
@@ -38,11 +42,6 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
   const getTitle = () => {
     return "Infirmary Medical Records (Admin View)";
   };
-
-  const [selectedRecord, setSelectedRecord] = useState(null);
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editRecordData, setEditRecordData] = useState(null);
 
   const getFilterTitle = () => {
     switch (currentFilter) {
@@ -412,73 +411,6 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
     }
   };
 
-  // Render loading state
-  if (loading) {
-    return (
-      <div className={`office-records-container ${getOfficeClass()}`}>
-        <NavBar
-          userDepartment={department}
-          userType={type}
-          userName={name}
-          onLogout={onLogout}
-          onNavItemClick={onNavItemClick}
-        />
-        <div className="office-records-header">
-          <div className="header-flex">
-            <div className="header-left">
-              <Breadcrumbs />
-            </div>
-          </div>
-          <hr />
-          <div className="header-flex">
-            <div className="header-left">
-              <h2><FaFolder /> {getTitle()}</h2>
-            </div>
-          </div>
-        </div>
-        <div className="content">
-          <div className="loading-state">Loading records...</div>
-        </div>
-      </div>
-    );
-  }
-
-  // Render error state
-  if (error) {
-    return (
-      <div className={`office-records-container ${getOfficeClass()}`}>
-        <NavBar
-          userDepartment={department}
-          userType={type}
-          userName={name}
-          onLogout={onLogout}
-          onNavItemClick={onNavItemClick}
-        />
-        <div className="office-records-header">
-          <div className="header-flex">
-            <div className="header-left">
-              <Breadcrumbs />
-            </div>
-          </div>
-          <hr />
-          <div className="header-flex">
-            <div className="header-left">
-              <h2><FaFolder /> {getTitle()}</h2>
-            </div>
-          </div>
-        </div>
-        <div className="content">
-          <div className="error-state">
-            Error loading records: {error}
-            <button onClick={refreshData} className="retry-button">
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={`office-records-container ${getOfficeClass()}`}>
       <NavBar
@@ -501,6 +433,9 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
             <h2><FaFolder /> {getFilterTitle()} {isSearchMode && searchQuery && `- Search: "${searchQuery}"`}</h2>
           </div>
           <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="admin-view-indicator" style={{ marginRight: '5px' }}>
+              <span className="admin-badge">Read-Only Mode</span>
+            </div>
 
             {!isSearchMode || !searchQuery ? (
               <FilterMedical
@@ -648,11 +583,32 @@ const AdminINFRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
         onEdit={(record) => {
           setSelectedRecord(null);
           setShowViewModal(false);
-          setEditRecordData(record);
+          // For admin, we still open the edit component but it will be view-only
+          setEditRecordData({
+            ...record,
+            isAdminViewOnly: true // Add a flag to indicate admin view-only mode
+          });
           setShowEditModal(true);
         }}
         record={selectedRecord}
         type={viewType}
+      />
+
+      {/* EditRecordComponent for admin - will show in view-only mode */}
+      <EditRecordComponent
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditRecordData(null);
+        }}
+        onRecordUpdated={() => {
+          // This won't be called since admin can't save
+          setShowEditModal(false);
+          setEditRecordData(null);
+        }}
+        type={viewType}
+        record={editRecordData}
+        isAdminViewOnly={true} // Pass prop to indicate admin view-only mode
       />
 
       <ViewStudentRecordsComponent

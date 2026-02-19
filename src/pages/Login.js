@@ -18,6 +18,7 @@ const Login = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
+  const [deactivatedUser, setDeactivatedUser] = useState(null);
   const navigate = useNavigate();
 
   // Load Google script on component mount
@@ -58,9 +59,10 @@ const Login = ({ onLogin }) => {
 
     setIsLoading(true);
     setError('');
+    setDeactivatedUser(null);
 
     try {
-      const response = await fetch('https://ccmr-final-node-production.up.railway.app/api/login', {
+      const response = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,11 +75,18 @@ const Login = ({ onLogin }) => {
       if (response.ok) {
         if (data.message === 'User found') {
           handleLoginSuccess(data.user);
-        } else {
-          setError('Invalid email or password');
         }
       } else {
-        setError(data.message || 'Login failed');
+        // Handle specific error messages
+        if (response.status === 403 && data.deactivated) {
+          setDeactivatedUser({
+            email: email,
+            deactivatedAt: data.deactivatedAt
+          });
+          setError(data.message); // "User Deactivated by the Administrator"
+        } else {
+          setError(data.message || 'Invalid email or password');
+        }
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -91,6 +100,7 @@ const Login = ({ onLogin }) => {
     try {
       setGoogleLoading(true);
       setError('');
+      setDeactivatedUser(null);
 
       // Ensure Google script is loaded
       await loadGoogleScript();
@@ -127,7 +137,7 @@ const Login = ({ onLogin }) => {
       console.log('Google response received');
 
       // Send token to backend for verification
-      const apiResponse = await fetch('https://ccmr-final-node-production.up.railway.app/api/google-login', {
+      const apiResponse = await fetch('http://localhost:5000/api/google-login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -140,7 +150,18 @@ const Login = ({ onLogin }) => {
       if (apiResponse.ok) {
         handleLoginSuccess(data.user);
       } else {
-        setError(data.message || 'Google login failed');
+        // Handle specific error messages for Google login
+        if (apiResponse.status === 403 && data.deactivated) {
+          // Extract email from Google token or use from data
+          const googleEmail = data.email || email;
+          setDeactivatedUser({
+            email: googleEmail,
+            deactivatedAt: data.deactivatedAt
+          });
+          setError(data.message); // "User Deactivated by the Administrator"
+        } else {
+          setError(data.message || 'Google login failed');
+        }
       }
     } catch (error) {
       console.error('Google response error:', error);
@@ -157,7 +178,8 @@ const Login = ({ onLogin }) => {
       email: userData.email,
       name: userData.name,
       department: userData.department || getDepartmentFromType(userData.type),
-      picture: userData.picture
+      picture: userData.picture,
+      status: userData.status
     };
     
     // Store in localStorage
@@ -189,6 +211,22 @@ const Login = ({ onLogin }) => {
     return departmentMap[userType] || 'Unknown Department';
   };
 
+  const formatDeactivationDate = (dateString) => {
+    if (!dateString) return 'Unknown date';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
+
   return (
     <div className="login-container">
       {/* <DemoOverlay /> */}
@@ -204,8 +242,18 @@ const Login = ({ onLogin }) => {
       <div className="right">
         <div className="login-box">
           {error && (
-            <div className="error-message">
-              {error}
+            <div className={`error-message ${deactivatedUser ? 'deactivated-error' : ''}`}>
+              <strong>{error}</strong>
+              {deactivatedUser && (
+                <div className="deactivation-details">
+                  <p>Your account has been deactivated. Please contact the system administrator for assistance.</p>
+                  {deactivatedUser.deactivatedAt && (
+                    <p className="deactivation-date">
+                      <small>Deactivated on: {formatDeactivationDate(deactivatedUser.deactivatedAt)}</small>
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

@@ -272,3 +272,48 @@
   color: #666;
   border: 1px solid #ddd;
 }
+
+/* Add to ViewFormStyles.css */
+
+.edit-history-list {
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.edit-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+}
+
+.edit-history-table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.edit-history-table td {
+  font-size: 0.9rem;
+}
+
+.edit-history-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.create-date-info {
+  padding: 10px 15px;
+  background-color: #f9f9f9;
+  border-top: 1px solid #eee;
+  font-style: italic;
+}
+
+.no-edit-history {
+  padding: 15px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  text-align: center;
+  color: #666;
+}

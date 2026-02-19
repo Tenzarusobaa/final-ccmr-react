@@ -31,7 +31,6 @@ const AdminOPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -319,7 +318,7 @@ const AdminOPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
       // In default mode, we have individual record objects
       // Open ViewRecordComponent directly with the record
       setSelectedRecord(recordOrStudent);
-      setShowViewModal(true); // We'll need to add this state
+      setShowViewModal(true);
     }
   };
 
@@ -412,6 +411,9 @@ const AdminOPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
             <h2><FaFolder /> {getTitle()} {isSearchMode && searchQuery && `- Search: "${searchQuery}"`}</h2>
           </div>
           <div className="header-right" style={{ display: 'flex', alignItems: 'center' }}>
+            <div className="admin-view-indicator" style={{ marginRight: '15px' }}>
+              <span className="admin-badge">Read-Only Mode</span>
+            </div>
             <SearchBar onSearch={handleSearch} placeholder="Search by ID, Name, or Strand" />
           </div>
         </div>
@@ -496,11 +498,32 @@ const AdminOPDRecords = ({ userData, onLogout, onNavItemClick, onExitViewAs }) =
         onEdit={(record) => {
           setSelectedRecord(null);
           setShowViewModal(false);
-          setEditRecordData(record);
+          // For admin, we still open the edit component but it will be view-only
+          setEditRecordData({
+            ...record,
+            isAdminViewOnly: true // Add a flag to indicate admin view-only mode
+          });
           setShowEditModal(true);
         }}
         record={selectedRecord}
         type={viewType}
+      />
+
+      {/* EditRecordComponent for admin - will show in view-only mode */}
+      <EditRecordComponent
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditRecordData(null);
+        }}
+        onRecordUpdated={() => {
+          // This won't be called since admin can't save
+          setShowEditModal(false);
+          setEditRecordData(null);
+        }}
+        type={viewType}
+        record={editRecordData}
+        isAdminViewOnly={true} // Pass prop to indicate admin view-only mode
       />
 
       <ViewStudentRecordsComponent

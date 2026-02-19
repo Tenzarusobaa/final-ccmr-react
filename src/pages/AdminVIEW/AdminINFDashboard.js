@@ -16,7 +16,7 @@ const AdminINFDashboard = ({ userData, onLogout, onNavItemClick, onExitViewAs })
   const location = useLocation();
   const department = userData?.department || localStorage.getItem('userDepartment') || 'Administrator';
   const type = userData?.type || localStorage.getItem('type') || 'Administrator';
-  
+
   // Force viewType to be INF for this admin view
   const viewType = "INF";
 
@@ -59,11 +59,13 @@ const AdminINFDashboard = ({ userData, onLogout, onNavItemClick, onExitViewAs })
           key="medical-inf"
           userType={viewType}
           onRowClick={handleRowClick}
+          isAdmin={true}
         />,
         <INFPsychologicalRecordsGCO
           key="psych-gco"
           userType={viewType}
           onRowClick={handleRowClick}
+          isAdmin={true}
         />
       ]
     };
@@ -102,7 +104,7 @@ const AdminINFDashboard = ({ userData, onLogout, onNavItemClick, onExitViewAs })
           {/* Left Section - 80% */}
           <div className="dashboard-left">
             {/* Tally Analytics Section for INF */}
-            <TallyAnalytics userType={viewType} />
+            <TallyAnalytics userType={viewType} isAdmin={true} />
 
             {/* Dashboard Tables Section */}
             <div className="dashboard-tables">
@@ -119,7 +121,8 @@ const AdminINFDashboard = ({ userData, onLogout, onNavItemClick, onExitViewAs })
                     onClick={handleOpenGuide}
                     label="User Guide"
                     title="Open User Guide"
-                    type={viewType}
+               
+                    style={{ backgroundColor: '#0a1a3c' }}
                   />
                 </div>
               </div>
@@ -151,7 +154,7 @@ const AdminINFDashboard = ({ userData, onLogout, onNavItemClick, onExitViewAs })
               <h3>Analytics Report</h3>
               <AnalyticsReport userType={viewType} />
             </div>
-            
+
             {/* Admin Information Card */}
             <div className="sidebar-card">
               <h3>Admin Information</h3>
@@ -174,7 +177,7 @@ const AdminINFDashboard = ({ userData, onLogout, onNavItemClick, onExitViewAs })
         onClose={handleCloseViewModal}
         record={selectedRecord}
         type={viewType}
-        onEdit={() => {}}
+        onEdit={() => { }}
       />
       <div className="footer">
         <div className="footer-header"> DATA PRIVACY CLOSURE</div>

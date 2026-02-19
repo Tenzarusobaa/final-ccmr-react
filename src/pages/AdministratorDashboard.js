@@ -22,7 +22,7 @@ const AdministratorDashboard = ({ userData, onLogout }) => {
     fetchUsers();
   }, []);
 
-  const API_BASE = "https://ccmr-final-node-production.up.railway.app/api";
+  const API_BASE = "http://localhost:5000/api";
 
   const fetchUsers = async () => {
     try {
@@ -51,9 +51,9 @@ const AdministratorDashboard = ({ userData, onLogout }) => {
       let bValue = b[sortConfig.key];
 
       // Handle dates
-      if (sortConfig.key === 'createdAt') {
-        aValue = new Date(aValue);
-        bValue = new Date(bValue);
+      if (sortConfig.key === 'createdAt' || sortConfig.key === 'deactivatedAt') {
+        aValue = aValue ? new Date(aValue) : new Date(0);
+        bValue = bValue ? new Date(bValue) : new Date(0);
       }
 
       if (aValue < bValue) {
@@ -90,24 +90,46 @@ const AdministratorDashboard = ({ userData, onLogout }) => {
     fetchUsers(); // Refresh user list
   };
 
-  const handleDeleteUser = async (email) => {
-    if (window.confirm(`Are you sure you want to delete user ${email}?`)) {
+  const handleDeactivateUser = async (email) => {
+    if (window.confirm(`Are you sure you want to deactivate user ${email}?`)) {
       try {
-        const response = await fetch(`${API_BASE}/users/${email}`, {
-          method: 'DELETE'
+        const response = await fetch(`${API_BASE}/users/${email}/deactivate`, {
+          method: 'PUT'
         });
         const data = await response.json();
 
         if (data.success) {
-          alert('User deleted successfully');
+          alert('User deactivated successfully');
           fetchUsers();
           handleCloseModal();
         } else {
           alert(`Error: ${data.error}`);
         }
       } catch (err) {
-        console.error('Error deleting user:', err);
-        alert('Failed to delete user');
+        console.error('Error deactivating user:', err);
+        alert('Failed to deactivate user');
+      }
+    }
+  };
+
+  const handleActivateUser = async (email) => {
+    if (window.confirm(`Are you sure you want to activate user ${email}?`)) {
+      try {
+        const response = await fetch(`${API_BASE}/users/${email}/activate`, {
+          method: 'PUT'
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          alert('User activated successfully');
+          fetchUsers();
+          handleCloseModal();
+        } else {
+          alert(`Error: ${data.error}`);
+        }
+      } catch (err) {
+        console.error('Error activating user:', err);
+        alert('Failed to activate user');
       }
     }
   };
@@ -128,25 +150,49 @@ const AdministratorDashboard = ({ userData, onLogout }) => {
       )
     },
     {
+      key: 'status',
+      label: 'Status',
+      sortable: true,
+      render: (value) => (
+        <span className={`status-badge ${value?.toLowerCase() || 'active'}`}>
+          {value || 'Active'}
+        </span>
+      )
+    },
+    {
       key: 'createdAt',
       label: 'Created Date',
       sortable: true,
       render: (value) => {
+        if (!value) return 'N/A';
         const date = new Date(value);
         return date.toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'short',
-          day: 'numeric'
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+    },
+    {
+      key: 'deactivatedAt',
+      label: 'Deactivated Date',
+      sortable: true,
+      render: (value) => {
+        if (!value) return '—';
+        const date = new Date(value);
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
         });
       }
     }
   ];
 
-  const stats = {
-    totalUsers: users.length,
-    administrators: users.filter(u => u.userType === 'Administrator').length,
-    departmentStaff: users.filter(u => u.department === 'OPD' || u.department === 'GCO' || u.department === 'INF').length
-  };
 
   const getCurrentDate = () => {
     const now = new Date();
@@ -188,7 +234,7 @@ const AdministratorDashboard = ({ userData, onLogout }) => {
                   <AddButton
                     onClick={handleAddUser}
                     label="Add User"
-                    type="default" 
+                    type="default"
                     title="Add New User"
                   />
                   <AddButton
@@ -203,6 +249,7 @@ const AdministratorDashboard = ({ userData, onLogout }) => {
               <div className="administrator-content">
                 <div className="section-header">
                   <h2>User Management</h2>
+
                 </div>
 
                 {loading ? (
@@ -233,7 +280,8 @@ const AdministratorDashboard = ({ userData, onLogout }) => {
           user={selectedUser}
           mode={modalMode}
           onEdit={handleEditUser}
-          onDelete={handleDeleteUser}
+          onDeactivate={handleDeactivateUser}
+          onActivate={handleActivateUser}
         />
       )}
 

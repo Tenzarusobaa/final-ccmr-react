@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBell, faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons";
+import { faBell, faCaretDown, faCaretRight, faFileMedical } from "@fortawesome/free-solid-svg-icons";
 import NotificationsModal from "../modals/NotificationModal";
 import "./NavBar.css";
 
@@ -20,7 +20,7 @@ const NavBar = ({ userDepartment, userType, userName, onLogout, onExitViewAs }) 
     // Define office configurations for Administrator
     const officeConfigurations = {
         "Office of the Prefect of Discipline": {
-            items: ["Dashboard", "OPD Records", "GCO Records", "INF Records", "Student Data"],
+            items: ["Dashboard", "OPD Records", "GCO Records", "INF Records","Student Data"],
             colorClass: "department-opd",
             type: "OPD"
         },
@@ -47,6 +47,7 @@ const NavBar = ({ userDepartment, userType, userName, onLogout, onExitViewAs }) 
                     "OPD Records": "/opd-records",
                     "GCO Records": "/gco-records",
                     "INF Records": "/inf-records",
+                    "Medical Certificates": "/medical-certificates",
                     "Student Data": "/student-data"
                 };
             case "GCO":
@@ -55,6 +56,7 @@ const NavBar = ({ userDepartment, userType, userName, onLogout, onExitViewAs }) 
                     "GCO Records": "/gco-records",
                     "OPD Records": "/opd-records",
                     "INF Records": "/inf-records",
+                    "Medical Certificates": "/medical-certificates",
                     "Student Data": "/student-data"
                 };
             case "INF":
@@ -62,6 +64,7 @@ const NavBar = ({ userDepartment, userType, userName, onLogout, onExitViewAs }) 
                     "Dashboard": "/dashboard",
                     "INF Records": "/inf-records",
                     "GCO Records": "/gco-records",
+                    "Medical Certificates": "/medical-certificates",
                     "Student Data": "/student-data"
                 };
             case "Administrator":
@@ -107,6 +110,7 @@ const NavBar = ({ userDepartment, userType, userName, onLogout, onExitViewAs }) 
                 "OPD Records": officeType === "GCO" ? "/admin-opd-records-gco" : "/admin-opd-records",
                 "GCO Records": getAdminGCORecordsRoute(officeType),
                 "INF Records": getAdminINFRecordsRoute(officeType),
+                "Medical Certificates": getAdminMedicalCertificatesRoute(officeType),
                 "Student Data": "/admin-student-data"
             };
 
@@ -137,6 +141,12 @@ const NavBar = ({ userDepartment, userType, userName, onLogout, onExitViewAs }) 
                     case "INF": return "/admin-gco-records-inf";
                     default: return "/admin-gco-records";
                 }
+            }
+
+            // Helper function for admin medical certificates route
+            function getAdminMedicalCertificatesRoute(officeType) {
+                // Medical certificates can be the same for all offices since it's a consolidated view
+                return "/admin-medical-certificates";
             }
 
             if (routeMap[item]) {
@@ -226,6 +236,9 @@ const NavBar = ({ userDepartment, userType, userName, onLogout, onExitViewAs }) 
                                                 onClick={() => handleNavClick(item)}
                                                 style={{ cursor: 'pointer' }}
                                             >
+                                                {item === "Medical Certificates" && (
+                                                    <FontAwesomeIcon icon={faFileMedical} style={{ marginRight: '5px' }} />
+                                                )}
                                                 {item}
                                             </div>
                                         ))}
@@ -291,7 +304,10 @@ const NavBar = ({ userDepartment, userType, userName, onLogout, onExitViewAs }) 
                                                                     cursor: 'pointer',
                                                                     color: '#333',
                                                                     transition: 'all 0.2s ease',
-                                                                    fontSize: '14px'
+                                                                    fontSize: '14px',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '8px'
                                                                 }}
                                                                 onMouseEnter={(e) => {
                                                                     e.target.style.backgroundColor = '#f0f0f0';
@@ -300,6 +316,9 @@ const NavBar = ({ userDepartment, userType, userName, onLogout, onExitViewAs }) 
                                                                     e.target.style.backgroundColor = 'transparent';
                                                                 }}
                                                             >
+                                                                {item === "Medical Certificates" && (
+                                                                    <FontAwesomeIcon icon={faFileMedical} style={{ color: '#28a745' }} />
+                                                                )}
                                                                 {item}
                                                             </div>
                                                         ))}
@@ -319,6 +338,7 @@ const NavBar = ({ userDepartment, userType, userName, onLogout, onExitViewAs }) 
                                     onClick={() => handleNavClick(item)}
                                     style={{ cursor: 'pointer' }}
                                 >
+                                 
                                     {item}
                                 </div>
                             ))

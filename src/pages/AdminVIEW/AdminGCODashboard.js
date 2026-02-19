@@ -16,7 +16,7 @@ const AdminGCODashboard = ({ userData, onLogout, onNavItemClick, onExitViewAs })
   const location = useLocation();
   const department = userData?.department || localStorage.getItem('userDepartment') || 'Administrator';
   const type = userData?.type || localStorage.getItem('type') || 'Administrator';
-  
+
   // Force viewType to be GCO for this admin view
   const viewType = "GCO";
 
@@ -77,7 +77,7 @@ const AdminGCODashboard = ({ userData, onLogout, onNavItemClick, onExitViewAs })
           {/* Left Section - 80% */}
           <div className="dashboard-left">
             {/* Tally Analytics Section for GCO */}
-            <TallyAnalytics userType={viewType} />
+            <TallyAnalytics userType={viewType} isAdmin={true} />
 
             {/* Dashboard Tables Section */}
             <div className="dashboard-tables">
@@ -94,7 +94,8 @@ const AdminGCODashboard = ({ userData, onLogout, onNavItemClick, onExitViewAs })
                     onClick={handleOpenGuide}
                     label="User Guide"
                     title="Open User Guide"
-                    type={viewType}
+           
+                    style={{ backgroundColor: '#0a1a3c' }}
                   />
                 </div>
               </div>
@@ -105,6 +106,7 @@ const AdminGCODashboard = ({ userData, onLogout, onNavItemClick, onExitViewAs })
                 <GCOCounselingRecords
                   userType={viewType}
                   onRowClick={handleRowClick}
+                  isAdmin={true}
                 />
               </div>
             </div>
@@ -115,7 +117,7 @@ const AdminGCODashboard = ({ userData, onLogout, onNavItemClick, onExitViewAs })
             {/* Quick Actions for Admin GCO */}
             <div className="sidebar-card">
               <h3>Quick Actions</h3>
-              <QuickActions userType={viewType} />
+              <QuickActions userType={viewType} isAdmin={true} /> {/* Add isAdmin prop */}
             </div>
 
             {/* Analytics Report for GCO */}
@@ -123,7 +125,7 @@ const AdminGCODashboard = ({ userData, onLogout, onNavItemClick, onExitViewAs })
               <h3>Analytics Report</h3>
               <AnalyticsReport userType={viewType} />
             </div>
-            
+
             {/* Admin Information Card */}
             <div className="sidebar-card">
               <h3>Admin Information</h3>
@@ -146,7 +148,7 @@ const AdminGCODashboard = ({ userData, onLogout, onNavItemClick, onExitViewAs })
         onClose={handleCloseViewModal}
         record={selectedRecord}
         type={viewType}
-        onEdit={() => {}}
+        onEdit={() => { }}
       />
       <div className="footer">
         <div className="footer-header"> DATA PRIVACY CLOSURE</div>

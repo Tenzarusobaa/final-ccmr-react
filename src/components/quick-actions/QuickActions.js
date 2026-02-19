@@ -6,7 +6,7 @@ import './QuickActions.css';
 const baseUrl = process.env.REACT_APP_NODE_SERVER_URL || "http://localhost:5000/";
 const apiUrl = `${baseUrl}api`;
 
-const QuickActions = ({ userType }) => {
+const QuickActions = ({ userType, isAdmin = false }) => {  // Add isAdmin prop with default false
   const [pendingReferrals, setPendingReferrals] = useState([]);
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -105,12 +105,19 @@ const QuickActions = ({ userType }) => {
                     Type: {referral.record_type === 'case_record' ? 'Case Record' : 'Medical Record'}
                   </div>
                 </div>
-                <button
-                  className="confirm-button"
-                  onClick={() => handleConfirmReferral(referral.record_id, referral.record_type)}
-                >
-                  Confirm
-                </button>
+                {/* Conditionally render confirm button - hide for admin view */}
+                {!isAdmin && (
+                  <button
+                    className="confirm-button"
+                    onClick={() => handleConfirmReferral(referral.record_id, referral.record_type)}
+                  >
+                    Confirm
+                  </button>
+                )}
+                {/* Optionally show a "View Only" indicator for admin */}
+                {isAdmin && (
+                  <span className="admin-view-only-badge">View Only</span>
+                )}
               </div>
             ))}
           </div>

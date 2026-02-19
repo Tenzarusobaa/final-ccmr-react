@@ -1,0 +1,372 @@
+/* src/pages/MedicalCertificates.css */
+.medical-certificates-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Department-specific theming */
+.medical-certificates-inf .data-table th {
+  background-color: #640C17;
+}
+
+.medical-certificates-opd .data-table th {
+  background-color: #003A6C;
+}
+
+.medical-certificates-gco .data-table th {
+  background-color: #00451D;
+}
+
+.medical-certificates-container .medical-certificates-header {
+  padding: 20px 20px 0 20px;
+  background-color: white;
+}
+
+.medical-certificates-container .header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.medical-certificates-container hr {
+  margin: 15px 0;
+  border: 1px solid #eee;
+}
+
+.medical-certificates-container .content {
+  padding: 20px;
+  flex: 1;
+  background-color: #f8f9fa;
+}
+
+/* File count badge */
+.file-count-badge {
+  background-color: #6c757d;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: normal;
+  margin-left: 10px;
+}
+
+/* Student info in table */
+.student-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.student-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.student-id {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+/* File name cell */
+.file-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 300px;
+}
+
+.file-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.file-icon.pdf {
+  color: #dc3545;
+}
+
+.file-icon.word {
+  color: #2b5797;
+}
+
+.file-link {
+  color: #0066cc;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.file-link:hover {
+  text-decoration: underline;
+  color: #004999;
+}
+
+.download-btn {
+  background: none;
+  border: none;
+  color: #28a745;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.download-btn:hover {
+  background-color: #e8f5e9;
+  color: #1e7e34;
+}
+
+/* Uploader badge */
+.uploader-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.uploader-inf {
+  background-color: #ffebee;
+  color: #640C17;
+  border: 1px solid #ffcdd2;
+}
+
+.uploader-opd {
+  background-color: #e3f2fd;
+  color: #003A6C;
+  border: 1px solid #bbdefb;
+}
+
+.uploader-gco {
+  background-color: #e8f5e9;
+  color: #00451D;
+  border: 1px solid #c8e6c9;
+}
+
+.uploader-unknown {
+  background-color: #f5f5f5;
+  color: #757575;
+  border: 1px solid #e0e0e0;
+}
+
+/* Type badges */
+.type-badges {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.type-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.type-medical {
+  background-color: #e3f2fd;
+  color: #0d47a1;
+  border: 1px solid #bbdefb;
+}
+
+.type-psychological {
+  background-color: #f3e5f5;
+  color: #4a148c;
+  border: 1px solid #e1bee7;
+}
+
+/* Case number */
+.case-number {
+  font-family: monospace;
+  font-weight: 500;
+  color: #555;
+}
+
+/* Filter select dropdowns */
+.filter-select {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background-color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  min-width: 150px;
+}
+
+.filter-select:hover {
+  border-color: #999;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0,102,204,0.2);
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+}
+
+.empty-state p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.clear-filters-btn {
+  padding: 8px 16px;
+  background-color: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.clear-filters-btn:hover {
+  background-color: #004999;
+}
+
+/* Loading and error states */
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 40px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  font-size: 1.1rem;
+}
+
+.error-state {
+  color: #dc3545;
+  background-color: #fff5f5;
+  border: 1px solid #ffcdd2;
+}
+
+/* View as banner */
+.view-as-banner {
+  background-color: #ff9800;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+}
+
+.view-as-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.view-as-text {
+  font-size: 0.95rem;
+}
+
+.exit-view-as-btn {
+  padding: 4px 12px;
+  background-color: white;
+  color: #ff9800;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.exit-view-as-btn:hover {
+  background-color: #fff3e0;
+  transform: scale(1.05);
+}
+
+/* Footer */
+.medical-certificates-container .footer {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-top: 1px solid #dee2e6;
+  margin-top: auto;
+}
+
+.medical-certificates-container .footer-header {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #495057;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.medical-certificates-container .footer-text {
+  font-size: 0.8rem;
+  color: #6c757d;
+  line-height: 1.5;
+  text-align: justify;
+}
+
+/* Table styles override */
+.medical-certificates-container .data-table th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.medical-certificates-container .data-table td {
+  vertical-align: middle;
+}
+
+.medical-certificates-container .data-table tbody tr:hover {
+  background-color: #f5f5f5;
+  cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .medical-certificates-container .header-flex {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-right {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .filter-select,
+  .header-right > * {
+    width: 100%;
+  }
+
+  .file-name-cell {
+    max-width: 200px;
+  }
+}

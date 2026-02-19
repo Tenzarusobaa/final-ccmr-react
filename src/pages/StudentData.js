@@ -6,6 +6,7 @@ import ImportButton from '../components/buttons/ImportButton';
 import SearchBar from '../components/search/SearchBar';
 import DataTable from '../components/tables/DataTable';
 import AddRecordComponent from '../components/modals/AddRecordComponent';
+import SuccessOverlay from '../components/common/SuccessOverlay';
 import { FaUser, FaShieldAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import './OfficeRecords.css';
 import DemoOverlay from './DemoOverlay';
@@ -29,9 +30,14 @@ const StudentData = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
   });
   const [availableSemesters, setAvailableSemesters] = useState([]);
   const [currentSemesterIndex, setCurrentSemesterIndex] = useState(0);
+  
+  // Add state for success overlay
+  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
+  const [importSummary, setImportSummary] = useState(null);
+  
   const fileInputRef = useRef(null);
 
-  const API_BASE = "https://ccmr-final-node-production.up.railway.app/api";
+  const API_BASE = "http://localhost:5000/api";
   const PYTHON_BASE = "http://localhost:5001/api";
 
   const getOfficeClass = () => {
@@ -256,11 +262,16 @@ const StudentData = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         throw new Error(data.message || `Import failed with status: ${response.status}`);
       }
 
-      let message = `✅ Import successful!\n\nTotal: ${data.summary.total_records}\nImported: ${data.summary.successful_imports}\nFailed: ${data.summary.failed_imports}`;
-      if (data.errors) {
-        message += `\n\nFirst few errors:\n${data.errors.join('\n')}`;
-      }
-      alert(message);
+      // Store the import summary and show success overlay
+      setImportSummary({
+        total: data.summary.total_records,
+        imported: data.summary.successful_imports,
+        failed: data.summary.failed_imports,
+        errors: data.errors || []
+      });
+      
+      // Show success overlay instead of alert
+      setShowSuccessOverlay(true);
 
       fetchStudents(); // Refresh data after import
     } catch (err) {
@@ -270,6 +281,12 @@ const StudentData = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
       setImportLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  // Add handler for closing success overlay
+  const handleCloseSuccessOverlay = () => {
+    setShowSuccessOverlay(false);
+    setImportSummary(null);
   };
 
   useEffect(() => {
@@ -420,6 +437,32 @@ const StudentData = ({ userData, onLogout, onNavItemClick, onExitViewAs }) => {
         accept=".xlsx,.xls,.csv"
         style={{ display: 'none' }}
       />
+
+      {/* Success Overlay */}
+      <SuccessOverlay
+        isVisible={showSuccessOverlay}
+        title="Students Imported Successfully!"
+        onExit={handleCloseSuccessOverlay}
+        exitButtonText="OK"
+      >
+        {importSummary && (
+          <div className="import-summary">
+            <p>Total Records: {importSummary.total}</p>
+            <p>Successfully Imported: {importSummary.imported}</p>
+            <p>Failed: {importSummary.failed}</p>
+            {importSummary.errors && importSummary.errors.length > 0 && (
+              <div className="import-errors">
+                <p><strong>First few errors:</strong></p>
+                <ul>
+                  {importSummary.errors.slice(0, 3).map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </SuccessOverlay>
 
       <AddRecordComponent isOpen={showAddModal} onClose={handleCloseModal} type={viewType} />
 

@@ -32,13 +32,27 @@ const GCOFormView = ({ record, primaryColor }) => {
     return timeString;
   };
 
+  // Format date for display (for edit history)
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
   const handleDownload = (file) => {
     // Construct the correct download URL for counseling records
     const recordId = record.recordId || record.cor_record_id;
     const filename = file.filename || file.originalname;
     
     if (recordId && filename) {
-      const downloadUrl = `https://ccmr-final-node-production.up.railway.app/api/counseling-records/${recordId}/files/${filename}`;
+      const downloadUrl = `https//localhost:5000/api/counseling-records/${recordId}/files/${filename}`;
       window.open(downloadUrl, '_blank');
     } else {
       console.error('Missing recordId or filename for download');
@@ -78,6 +92,9 @@ const GCOFormView = ({ record, primaryColor }) => {
 
   // Get attachments from record - handle different property names
   const attachments = record.attachments || record.cor_attachments || [];
+
+  // Get edit history
+  const editHistory = record.editDate || [];
 
   return (
     <div className="form-container">
@@ -276,6 +293,56 @@ const GCOFormView = ({ record, primaryColor }) => {
         ) : (
           <div className="no-attachments">
             <p>No attachments available for this record.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Edit History Section */}
+      <div className="form-section-full">
+        <h4 style={{ color: primaryColor }}>Edit History</h4>
+        {editHistory.length > 0 ? (
+          <div className="edit-history-list">
+            <table className="edit-history-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', padding: '8px', borderBottom: `2px solid ${primaryColor}` }}>#</th>
+                  <th style={{ textAlign: 'left', padding: '8px', borderBottom: `2px solid ${primaryColor}` }}>Edited By</th>
+                  <th style={{ textAlign: 'left', padding: '8px', borderBottom: `2px solid ${primaryColor}` }}>Date & Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {editHistory.map((edit, index) => (
+                  <tr key={index}>
+                    <td style={{ padding: '8px', borderBottom: '1px solid #eee' }}>{index + 1}</td>
+                    <td style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
+                      <span style={{ 
+                        backgroundColor: edit.editedBy === 'OPD' ? '#003A6C' : 
+                                       edit.editedBy === 'GCO' ? '#00451D' : '#640C17',
+                        color: 'white',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '0.85rem'
+                      }}>
+                        {edit.editedBy}
+                      </span>
+                    </td>
+                    <td style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
+                      {formatDate(edit.editedAt)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="create-date-info" style={{ marginTop: '10px', fontSize: '0.9rem', color: '#666' }}>
+              <strong>Created:</strong> {formatDate(record.createDate)}
+            </div>
+          </div>
+        ) : (
+          <div className="no-edit-history">
+            <p>No edit history available for this record.</p>
+            <div className="create-date-info" style={{ fontSize: '0.9rem', color: '#666' }}>
+              <strong>Created:</strong> {formatDate(record.createDate)}
+            </div>
           </div>
         )}
       </div>
